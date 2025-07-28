@@ -62,7 +62,7 @@ export default function RegisterPage() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="กรอกชื่อ-นามสกุลของคุณ"
+              placeholder="กรอกชื่อ-นามสกุล(แนะนำให้ใช้ชื่อจริงเพราะจะง่ายต่อการติดต่อ)"
               className="form-input"
             />
           </div>
@@ -115,7 +115,7 @@ export default function RegisterPage() {
         </form>
 
         <div className="auth-footer">
-          <p>มีบัญชีอยู่แล้ว? <Link href="/login" className="auth-link">เข้าสู่ระบบที่นี่</Link></p>
+          <p>มีบัญชีอยู่แล้วให้ทำการ<Link href="/login" className="auth-link">เข้าสู่ระบบที่นี่</Link></p>
         </div>
       </div>
     </div>

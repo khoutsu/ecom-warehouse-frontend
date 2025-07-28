@@ -55,7 +55,7 @@ export default function Navbar() {
                 <Link href="/orders">คำสั่งซื้อ</Link>
               </li>
               <li>
-                <Link href="/dashboard">แดชบอร์ด</Link>
+                <Link href="/dashboard">ข้อมูลผู้ใช</Link>
               </li>
               {user.role === 'admin' && (
                 <li>

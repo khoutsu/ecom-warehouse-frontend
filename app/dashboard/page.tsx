@@ -34,7 +34,7 @@ export default function DashboardPage() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h1>ยินดีต้อนรับสู่แดชบอร์ดของคุณ</h1>
+        <h1>ยินดีต้อนรับสู่ข้อมูลผู้ใช้</h1>
         <p>สวัสดี, {user.name}!</p>
       </div>
 
