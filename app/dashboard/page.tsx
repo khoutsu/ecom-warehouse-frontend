@@ -17,7 +17,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="dashboard-container">
-        <div className="loading">Loading...</div>
+        <div className="loading">กำลังโหลด...</div>
       </div>
     );
   }
@@ -34,37 +34,60 @@ export default function DashboardPage() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h1>Welcome to your Dashboard</h1>
-        <p>Hello, {user.name}!</p>
+        <h1>ยินดีต้อนรับสู่แดชบอร์ดของคุณ</h1>
+        <p>สวัสดี, {user.name}!</p>
       </div>
 
       <div className="dashboard-content">
         <div className="dashboard-card">
-          <h2>Account Information</h2>
-          <p><strong>Name:</strong> {user.name}</p>
-          <p><strong>Email:</strong> {user.email}</p>
-          <p><strong>User ID:</strong> {user.id}</p>
+          <h2>ข้อมูลบัญชี</h2>
+          <p><strong>ชื่อ:</strong> {user.name}</p>
+          <p><strong>อีเมล:</strong> {user.email}</p>
+          <p><strong>รหัสผู้ใช้:</strong> {user.id}</p>
+          {user.role && <p><strong>บทบาท:</strong> {user.role}</p>}
+          {user.isActive !== undefined && (
+            <p><strong>สถานะ:</strong> {user.isActive ? 'ใช้งานอยู่' : 'ไม่ได้ใช้งาน'}</p>
+          )}
+          {user.createdAt && (
+            <p><strong>สมาชิกตั้งแต่:</strong> {new Date(user.createdAt.seconds * 1000).toLocaleDateString('th-TH')}</p>
+          )}
+          {user.lastLogin && (
+            <p><strong>เข้าสู่ระบบล่าสุด:</strong> {new Date(user.lastLogin.seconds * 1000).toLocaleString('th-TH')}</p>
+          )}
         </div>
 
         <div className="dashboard-card">
-          <h2>Quick Actions</h2>
+          <h2>การดำเนินการด่วน</h2>
           <div className="action-buttons">
-            <button className="action-button">View Products</button>
-            <button className="action-button">Manage Inventory</button>
-            <button className="action-button">View Orders</button>
-            <button className="action-button">Generate Reports</button>
+            {user.role === 'admin' && (
+              <button 
+                className="action-button"
+                onClick={() => router.push('/users')}
+              >
+                จัดการผู้ใช้
+              </button>
+            )}
+            <button 
+              className="action-button"
+              onClick={() => router.push('/products')}
+            >
+              ดูสินค้า
+            </button>
+            <button className="action-button">จัดการคลังสินค้า</button>
+            <button className="action-button">ดูคำสั่งซื้อ</button>
+            <button className="action-button">สร้างรายงาน</button>
           </div>
         </div>
 
         <div className="dashboard-card">
-          <h2>Recent Activity</h2>
-          <p>No recent activity to display.</p>
+          <h2>กิจกรรมล่าสุด</h2>
+          <p>ไม่มีกิจกรรมล่าสุดให้แสดง</p>
         </div>
       </div>
 
       <div className="dashboard-footer">
         <button onClick={handleLogout} className="logout-button">
-          Logout
+          ออกจากระบบ
         </button>
       </div>
     </div>

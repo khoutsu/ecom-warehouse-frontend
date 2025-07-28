@@ -51,54 +51,54 @@ export default function RegisterPage() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">Register</h1>
-        <p className="auth-subtitle">Create your E-commerce Warehouse account</p>
+        <h1 className="auth-title">สมัครสมาชิก</h1>
+        <p className="auth-subtitle">สร้างบัญชีระบบคลังสินค้าอีคอมเมิร์ซของคุณ</p>
         
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label htmlFor="name">Full Name</label>
+            <label htmlFor="name">ชื่อ-นามสกุล</label>
             <input
               type="text"
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your full name"
+              placeholder="กรอกชื่อ-นามสกุลของคุณ"
               className="form-input"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">อีเมล</label>
             <input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder="กรอกอีเมลของคุณ"
               className="form-input"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">รหัสผ่าน</label>
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Create a password"
+              placeholder="สร้างรหัสผ่าน"
               className="form-input"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="confirmPassword">ยืนยันรหัสผ่าน</label>
             <input
               type="password"
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm your password"
+              placeholder="ยืนยันรหัสผ่านของคุณ"
               className="form-input"
             />
           </div>
@@ -110,12 +110,12 @@ export default function RegisterPage() {
             className="auth-button"
             disabled={isLoading}
           >
-            {isLoading ? 'Creating Account...' : 'Register'}
+            {isLoading ? 'กำลังสร้างบัญชี...' : 'สมัครสมาชิก'}
           </button>
         </form>
 
         <div className="auth-footer">
-          <p>Already have an account? <Link href="/login" className="auth-link">Login here</Link></p>
+          <p>มีบัญชีอยู่แล้ว? <Link href="/login" className="auth-link">เข้าสู่ระบบที่นี่</Link></p>
         </div>
       </div>
     </div>
