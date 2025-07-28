@@ -9,12 +9,18 @@ import {
   updateProfile,
   User as FirebaseUser 
 } from 'firebase/auth';
-import { auth } from '../../lib/firebase';
+import { doc, setDoc, serverTimestamp, updateDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../lib/firebase';
+import { createUserDocument, getUserDocument, updateLastLogin } from '../../lib/userService';
 
 interface User {
   id: string;
   email: string;
   name: string;
+  role?: 'admin' | 'customer';
+  isActive?: boolean;
+  createdAt?: any;
+  lastLogin?: any;
 }
 
 interface AuthContextType {
@@ -33,15 +39,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Listen for authentication state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
-        // User is signed in
-        const userData: User = {
-          id: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User'
-        };
-        setUser(userData);
+        try {
+          // Fetch user data from Firestore using utility function
+          const userData = await getUserDocument(firebaseUser.uid);
+          
+          if (userData) {
+            // User data exists in Firestore
+            const user: User = {
+              id: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              name: userData.name || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+              role: userData.role || 'admin',
+              isActive: userData.isActive || true,
+              createdAt: userData.createdAt,
+              lastLogin: userData.lastLogin
+            };
+            setUser(user);
+          } else {
+            // User data doesn't exist in Firestore, create basic user object
+            const user: User = {
+              id: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User'
+            };
+            setUser(user);
+          }
+        } catch (error) {
+          console.error('Error fetching user data from Firestore:', error);
+          // Fallback to basic user data
+          const user: User = {
+            id: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User'
+          };
+          setUser(user);
+        }
       } else {
         // User is signed out
         setUser(null);
@@ -63,6 +97,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         displayName: name
       });
 
+      // Save user data to Firestore database using utility function
+      await createUserDocument({
+        uid: userCredential.user.uid,
+        name: name,
+        email: email,
+        role: 'customer', // Default role for new registrations
+        isActive: true
+      });
+
+      console.log('User registered and saved to database successfully');
+      
       // User data will be automatically set by onAuthStateChanged
       return true;
     } catch (error: any) {
@@ -83,7 +128,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Update lastLogin timestamp using utility function
+      try {
+        await updateLastLogin(userCredential.user.uid);
+        console.log('User login timestamp updated');
+      } catch (dbError) {
+        console.error('Error updating login timestamp:', dbError);
+        // Don't throw error for this, as login was successful
+      }
+      
       // User data will be automatically set by onAuthStateChanged
       return true;
     } catch (error: any) {

@@ -57,6 +57,11 @@ export default function Navbar() {
               <li>
                 <Link href="/dashboard">Dashboard</Link>
               </li>
+              {user.role === 'admin' && (
+                <li>
+                  <Link href="/users">Users</Link>
+                </li>
+              )}
             </>
           )}
           {user ? (
@@ -99,6 +104,11 @@ export default function Navbar() {
               <li>
                 <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
               </li>
+              {user.role === 'admin' && (
+                <li>
+                  <Link href="/users" onClick={() => setIsMenuOpen(false)}>Users</Link>
+                </li>
+              )}
             </>
           )}
           {user ? (

@@ -34,21 +34,39 @@ export default function DashboardPage() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h1>Welcome to your Dashboard</h1>
-        <p>Hello, {user.name}!</p>
+        <h1>ข้อมูลผู้ใช้</h1>
+        <p>สวัสดี, {user.name}!</p>
       </div>
 
       <div className="dashboard-content">
         <div className="dashboard-card">
-          <h2>Account Information</h2>
+          <h2>ข้อมูลบัญชี</h2>
           <p><strong>Name:</strong> {user.name}</p>
           <p><strong>Email:</strong> {user.email}</p>
           <p><strong>User ID:</strong> {user.id}</p>
+          {user.role && <p><strong>Role:</strong> {user.role}</p>}
+          {user.isActive !== undefined && (
+            <p><strong>Status:</strong> {user.isActive ? 'Active' : 'Inactive'}</p>
+          )}
+          {user.createdAt && (
+            <p><strong>Member Since:</strong> {new Date(user.createdAt.seconds * 1000).toLocaleDateString()}</p>
+          )}
+          {user.lastLogin && (
+            <p><strong>Last Login:</strong> {new Date(user.lastLogin.seconds * 1000).toLocaleString()}</p>
+          )}
         </div>
 
         <div className="dashboard-card">
           <h2>Quick Actions</h2>
           <div className="action-buttons">
+            {user.role === 'admin' && (
+              <button 
+                className="action-button"
+                onClick={() => router.push('/users')}
+              >
+                Manage Users
+              </button>
+            )}
             <button className="action-button">View Products</button>
             <button className="action-button">Manage Inventory</button>
             <button className="action-button">View Orders</button>
