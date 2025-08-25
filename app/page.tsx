@@ -20,8 +20,8 @@ export default function Home() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="loading">
-          <h2>Loading E-commerce Warehouse...</h2>
-          <p>Please wait while we check your authentication status.</p>
+          <h2>กำลังโหลดระบบคลังสินค้าอีคอมเมิร์ซ...</h2>
+          <p>กรุณารอสักครู่ขณะที่เราตรวจสอบสถานะการเข้าสู่ระบบของคุณ</p>
         </div>
       </div>
     );
@@ -33,27 +33,27 @@ export default function Home() {
       <div className="min-h-screen">
         <div className="welcome-container">
           <div className="welcome-content">
-            <h1>Welcome to E-commerce Warehouse</h1>
-            <p>Hello {user.name}! You're successfully logged in.</p>
+            <h1>ยินดีต้อนรับสู่ระบบคลังสินค้าอีคอมเมิร์ซ</h1>
+            <p>สวัสดี {user.name}! คุณได้เข้าสู่ระบบเรียบร้อยแล้ว</p>
             
             <div className="welcome-actions">
               <button 
                 onClick={() => router.push('/dashboard')}
                 className="welcome-button primary"
               >
-                Go to Dashboard
+                ไปยังแดชบอร์ด
               </button>
               <button 
                 onClick={() => router.push('/products')}
                 className="welcome-button secondary"
               >
-                View Products
+                ดูสินค้า
               </button>
               <button 
                 onClick={() => router.push('/inventory')}
                 className="welcome-button secondary"
               >
-                Manage Inventory
+                จัดการสินค้าคงคลัง
               </button>
             </div>
           </div>

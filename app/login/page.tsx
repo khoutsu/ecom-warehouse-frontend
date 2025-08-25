@@ -19,7 +19,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     if (!email || !password) {
-      setError('Please fill in all fields');
+      setError('กรุณากรอกข้อมูลให้ครบทุกช่อง');
       setIsLoading(false);
       return;
     }
@@ -28,7 +28,7 @@ export default function LoginPage() {
       await login(email, password);
       router.push('/dashboard');
     } catch (error: any) {
-      setError(error.message || 'Login failed. Please try again.');
+      setError(error.message || 'การเข้าสู่ระบบล้มเหลว กรุณาลองใหม่อีกครั้ง');
     } finally {
       setIsLoading(false);
     }
@@ -37,30 +37,30 @@ export default function LoginPage() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">Login</h1>
-        <p className="auth-subtitle">Welcome back to E-commerce Warehouse</p>
+        <h1 className="auth-title">เข้าสู่ระบบ</h1>
+        <p className="auth-subtitle">ยินดีต้อนรับสู่ระบบคลังสินค้าอีคอมเมิร์ซ</p>
         
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">อีเมล</label>
             <input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder="กรอกอีเมลของคุณ"
               className="form-input"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">รหัสผ่าน</label>
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              placeholder="กรอกรหัสผ่านของคุณ"
               className="form-input"
             />
           </div>
@@ -72,12 +72,12 @@ export default function LoginPage() {
             className="auth-button"
             disabled={isLoading}
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isLoading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
           </button>
         </form>
 
         <div className="auth-footer">
-          <p>Don't have an account? <Link href="/register" className="auth-link">Register here</Link></p>
+          <p>ยังไม่มีบัญชี? <Link href="/register" className="auth-link">สมัครสมาชิกที่นี่</Link></p>
         </div>
       </div>
     </div>

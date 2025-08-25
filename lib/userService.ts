@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
 export interface UserData {
@@ -149,6 +149,37 @@ export const updateUserRole = async (uid: string, newRole: 'admin' | 'customer',
     console.log(`User role updated to ${newRole} by admin ${adminUid}`);
   } catch (error) {
     console.error('Error updating user role:', error);
+    throw error;
+  }
+};
+
+// Delete user (admin only)
+export const deleteUser = async (uid: string, adminUid: string) => {
+  try {
+    // First check if the requesting user is an admin
+    const adminData = await getUserDocument(adminUid);
+    if (!adminData || adminData.role !== 'admin') {
+      throw new Error('ไม่ได้รับอนุญาต: เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถลบผู้ใช้ได้');
+    }
+
+    // Prevent admins from deleting themselves
+    if (uid === adminUid) {
+      throw new Error('ไม่สามารถลบบัญชีของตัวเองได้');
+    }
+
+    // Check if user exists
+    const userData = await getUserDocument(uid);
+    if (!userData) {
+      throw new Error('ไม่พบผู้ใช้ที่ต้องการลบ');
+    }
+
+    // Delete user document from Firestore
+    const userDocRef = doc(db, 'users', uid);
+    await deleteDoc(userDocRef);
+
+    console.log(`User ${uid} deleted by admin ${adminUid}`);
+  } catch (error) {
+    console.error('Error deleting user:', error);
     throw error;
   }
 };

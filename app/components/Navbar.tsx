@@ -24,7 +24,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link href="/" className="navbar-brand" >
-          E-commerce Warehouse
+          ระบบคลังสินค้าอีคอมเมิร์ซ
         </Link>
         
         {/* Mobile menu button */}
@@ -41,45 +41,50 @@ export default function Navbar() {
         {/* Desktop navigation */}
         <ul className="navbar-nav desktop-nav">
           <li>
-            <Link href="/">Home</Link>
+            <Link href="/">หน้าหลัก</Link>
           </li>
           {user && (
             <>
               <li>
-                <Link href="/products">Products</Link>
+                <Link href="/products">สินค้า</Link>
               </li>
               <li>
-                <Link href="/inventory">Inventory</Link>
+                <Link href="/orders">คำสั่งซื้อ</Link>
               </li>
               <li>
-                <Link href="/orders">Orders</Link>
+                <Link href="/dashboard">แดชบอร์ด</Link>
               </li>
               <li>
-                <Link href="/dashboard">Dashboard</Link>
+                <Link href="/profile">ข้อมูลผู้ใช้</Link>
               </li>
               {user.role === 'admin' && (
-                <li>
-                  <Link href="/users">Users</Link>
-                </li>
+                <>
+                  <li>
+                    <Link href="/inventory">คลังสินค้า</Link>
+                  </li>
+                  <li>
+                    <Link href="/users">ผู้ใช้</Link>
+                  </li>
+                </>
               )}
             </>
           )}
           {user ? (
             <>
               <li>
-                <span className="navbar-user">Hello, {user.name}</span>
+                <span className="navbar-user">สวัสดี, {user.name}</span>
               </li>
               <li>
-                <button onClick={handleLogout} className="navbar-logout">Logout</button>
+                <button onClick={handleLogout} className="navbar-logout">ออกจากระบบ</button>
               </li>
             </>
           ) : (
             <>
               <li>
-                <Link href="/login">Login</Link>
+                <Link href="/login">เข้าสู่ระบบ</Link>
               </li>
               <li>
-                <Link href="/register">Register</Link>
+                <Link href="/register">สมัครสมาชิก</Link>
               </li>
             </>
           )}
@@ -88,45 +93,50 @@ export default function Navbar() {
         {/* Mobile navigation */}
         <ul className={`navbar-nav mobile-nav ${isMenuOpen ? 'open' : ''}`}>
           <li>
-            <Link href="/" onClick={() => setIsMenuOpen(false)}>Home</Link>
+            <Link href="/" onClick={() => setIsMenuOpen(false)}>หน้าหลัก</Link>
           </li>
           {user && (
             <>
               <li>
-                <Link href="/products" onClick={() => setIsMenuOpen(false)}>Products</Link>
+                <Link href="/products" onClick={() => setIsMenuOpen(false)}>สินค้า</Link>
               </li>
               <li>
-                <Link href="/inventory" onClick={() => setIsMenuOpen(false)}>Inventory</Link>
+                <Link href="/orders" onClick={() => setIsMenuOpen(false)}>คำสั่งซื้อ</Link>
               </li>
               <li>
-                <Link href="/orders" onClick={() => setIsMenuOpen(false)}>Orders</Link>
+                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>แดชบอร์ด</Link>
               </li>
               <li>
-                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
+                <Link href="/profile" onClick={() => setIsMenuOpen(false)}>ข้อมูลผู้ใช้</Link>
               </li>
               {user.role === 'admin' && (
-                <li>
-                  <Link href="/users" onClick={() => setIsMenuOpen(false)}>Users</Link>
-                </li>
+                <>
+                  <li>
+                    <Link href="/inventory" onClick={() => setIsMenuOpen(false)}>คลังสินค้า</Link>
+                  </li>
+                  <li>
+                    <Link href="/users" onClick={() => setIsMenuOpen(false)}>ผู้ใช้</Link>
+                  </li>
+                </>
               )}
             </>
           )}
           {user ? (
             <>
               <li>
-                <span className="navbar-user">Hello, {user.name}</span>
+                <span className="navbar-user">สวัสดี, {user.name}</span>
               </li>
               <li>
-                <button onClick={handleLogout} className="navbar-logout">Logout</button>
+                <button onClick={handleLogout} className="navbar-logout">ออกจากระบบ</button>
               </li>
             </>
           ) : (
             <>
               <li>
-                <Link href="/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
+                <Link href="/login" onClick={() => setIsMenuOpen(false)}>เข้าสู่ระบบ</Link>
               </li>
               <li>
-                <Link href="/register" onClick={() => setIsMenuOpen(false)}>Register</Link>
+                <Link href="/register" onClick={() => setIsMenuOpen(false)}>สมัครสมาชิก</Link>
               </li>
             </>
           )}
