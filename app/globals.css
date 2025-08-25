@@ -631,7 +631,6 @@
 /* Action Controls Styles */
 .action-controls {
   display: flex;
-  flex-direction: column;
   gap: 0.5rem;
   align-items: flex-start;
 }

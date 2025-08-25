@@ -226,7 +226,7 @@ export default function InventoryPage() {
           margin: '10px 0 0 0', 
           fontSize: '14px', 
           color: '#666',
-          fontStyle: 'italic'
+          fontStyle: 'Regular'
         }}>
           ℹ️ การเปลี่ยนแปลงจำนวนสินค้าคงคลังจะอัปเดตสต็อกในหน้าสินค้าโดยอัตโนมัติ
         </p>

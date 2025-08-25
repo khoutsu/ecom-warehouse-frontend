@@ -33,28 +33,73 @@ export default function Home() {
       <div className="min-h-screen">
         <div className="welcome-container">
           <div className="welcome-content">
-            <h1>ยินดีต้อนรับสู่ระบบคลังสินค้าอีคอมเมิร์ซ</h1>
-            <p>สวัสดี {user.name}! คุณได้เข้าสู่ระบบเรียบร้อยแล้ว</p>
-            
+                       {user.role === 'admin' ? (
+              // Admin welcome
+              <>
+                <h1>ยินดีต้อนรับสู่ระบบจัดการคลังและผลิตภัณฑ์จานใบไม้</h1>
+                <p>สวัสดี คุณ{user.name}! ผู้ดูแลระบบ</p>
+              </>
+            ) : (
+              // Customer welcome
+              <>
+                <h1>ยินดีต้อนรับสู่ร้านผลิตภัณฑ์จานใบไม้</h1>
+                <p>สวัสดี คุณ{user.name}! ลูกค้า</p>
+                <p className="welcome-subtitle">เลือกซื้อผลิตภัณฑ์จานใบไม้คุณภาพดีจากเรา</p>
+              </>
+            )}     
             <div className="welcome-actions">
-              <button 
-                onClick={() => router.push('/dashboard')}
-                className="welcome-button primary"
-              >
-                ไปยังแดชบอร์ด
-              </button>
-              <button 
-                onClick={() => router.push('/products')}
-                className="welcome-button secondary"
-              >
-                ดูสินค้า
-              </button>
-              <button 
-                onClick={() => router.push('/inventory')}
-                className="welcome-button secondary"
-              >
-                จัดการสินค้าคงคลัง
-              </button>
+              {user.role === 'admin' ? (
+                // Admin buttons
+                <>
+                  <button 
+                    onClick={() => router.push('/inventory')}
+                    className="welcome-button primary"
+                  >
+                    จัดการสินค้าคงคลัง
+                  </button>
+                  <button 
+                    onClick={() => router.push('/products')}
+                    className="welcome-button secondary"
+                  >
+                    จัดการสินค้า
+                  </button>
+                  <button 
+                    onClick={() => router.push('/dashboard')}
+                    className="welcome-button secondary"
+                  >
+                    ไปยังแดชบอร์ด
+                  </button>
+                  <button 
+                    onClick={() => router.push('/users')}
+                    className="welcome-button secondary"
+                  >
+                    จัดการผู้ใช้
+                  </button>
+                </>
+              ) : (
+                
+                // Customer buttons
+                <>
+                  <button 
+                    onClick={() => router.push('/products')}
+                    className="welcome-button primary"
+                  >
+                    เลือกซื้อสินค้า
+                  </button>
+                  <button 
+                    onClick={() => router.push('/orders')}
+                    className="welcome-button secondary"
+                  >
+                    คำสั่งซื้อของฉัน
+                  </button>
+                  <button 
+                    onClick={() => router.push('/profile')}
+                    className="welcome-button secondary"
+                  >
+                    ข้อมูลส่วนตัว
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
