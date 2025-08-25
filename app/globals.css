@@ -11,7 +11,7 @@
 }
 
 .navbar-container {
-  max-width: 1200px;
+  max-width: 1700px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -113,7 +113,7 @@
   display: none;
   position: absolute;
   top: 100%;
-  left: 0;
+  right: 0;
   background-color: #90EE90;
   flex-direction: column;
   gap: 0;

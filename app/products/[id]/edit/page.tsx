@@ -180,7 +180,7 @@ export default function EditProductPage() {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  placeholder="เช่น อิเล็กทรอนิกส์, เสื้อผ้า, อาหาร"
+                  placeholder="เช่น จาน, ช้อน, ส้อม, ใบไม้"
                   className="form-input"
                   required
                 />
@@ -210,7 +210,6 @@ export default function EditProductPage() {
                   name="price"
                   value={formData.price}
                   onChange={handleChange}
-                  placeholder="0.00"
                   className="form-input"
                   min="0"
                   step="0.01"
@@ -226,7 +225,6 @@ export default function EditProductPage() {
                   name="stock"
                   value={formData.stock}
                   onChange={handleChange}
-                  placeholder="0"
                   className="form-input"
                   min="0"
                   required

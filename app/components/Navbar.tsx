@@ -24,7 +24,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link href="/" className="navbar-brand" >
-          ระบบคลังสินค้าอีคอมเมิร์ซ
+          ระบบคลังและผลิตภัณฑ์จานใบไม้
         </Link>
         
         {/* Mobile menu button */}
