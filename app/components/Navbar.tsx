@@ -64,9 +64,6 @@ export default function Navbar() {
                    <li>
                      <Link href="/dashboard">แดชบอร์ด</Link>
                   </li>
-                  <li>
-                    <Link href="/users">ผู้ใช้</Link>
-                  </li>
                 </>
               )}
             </>
