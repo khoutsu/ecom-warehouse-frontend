@@ -29,12 +29,20 @@ export interface CreateProductData {
 export const getAllProducts = async (): Promise<Product[]> => {
   try {
     const productsRef = collection(db, 'products');
-    const q = query(productsRef, orderBy('createdAt', 'desc'));
-    const querySnapshot = await getDocs(q);
+    // Remove orderBy to avoid index requirement, sort on client side
+    const querySnapshot = await getDocs(productsRef);
     
     const products: Product[] = [];
     querySnapshot.forEach((doc) => {
       products.push({ id: doc.id, ...doc.data() } as Product);
+    });
+    
+    // Sort on the client side instead
+    products.sort((a, b) => {
+      if (a.createdAt && b.createdAt) {
+        return b.createdAt.seconds - a.createdAt.seconds;
+      }
+      return 0;
     });
     
     return products;
@@ -48,16 +56,21 @@ export const getAllProducts = async (): Promise<Product[]> => {
 export const getActiveProducts = async (): Promise<Product[]> => {
   try {
     const productsRef = collection(db, 'products');
-    const q = query(
-      productsRef, 
-      where('isActive', '==', true),
-      orderBy('createdAt', 'desc')
-    );
+    // Use simple query without orderBy to avoid index requirement
+    const q = query(productsRef, where('isActive', '==', true));
     const querySnapshot = await getDocs(q);
     
     const products: Product[] = [];
     querySnapshot.forEach((doc) => {
       products.push({ id: doc.id, ...doc.data() } as Product);
+    });
+    
+    // Sort on the client side instead
+    products.sort((a, b) => {
+      if (a.createdAt && b.createdAt) {
+        return b.createdAt.seconds - a.createdAt.seconds;
+      }
+      return 0;
     });
     
     return products;
@@ -224,17 +237,25 @@ export const searchProducts = async (searchTerm: string): Promise<Product[]> => 
 export const getProductsByCategory = async (category: string): Promise<Product[]> => {
   try {
     const productsRef = collection(db, 'products');
+    // Use simple query without orderBy to avoid index requirement
     const q = query(
       productsRef,
       where('category', '==', category),
-      where('isActive', '==', true),
-      orderBy('createdAt', 'desc')
+      where('isActive', '==', true)
     );
     const querySnapshot = await getDocs(q);
     
     const products: Product[] = [];
     querySnapshot.forEach((doc) => {
       products.push({ id: doc.id, ...doc.data() } as Product);
+    });
+    
+    // Sort on the client side instead
+    products.sort((a, b) => {
+      if (a.createdAt && b.createdAt) {
+        return b.createdAt.seconds - a.createdAt.seconds;
+      }
+      return 0;
     });
     
     return products;

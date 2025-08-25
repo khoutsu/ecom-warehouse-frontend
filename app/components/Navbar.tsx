@@ -46,13 +46,12 @@ export default function Navbar() {
           {user && (
             <>
               <li>
-                <Link href="/products">สินค้า</Link>
+                <Link href="/products">
+                  {user.role === 'admin' ? 'จัดการสินค้า' : 'ร้านค้า'}
+                </Link>
               </li>
               <li>
                 <Link href="/orders">คำสั่งซื้อ</Link>
-              </li>
-              <li>
-                <Link href="/dashboard">แดชบอร์ด</Link>
               </li>
               <li>
                 <Link href="/profile">ข้อมูลผู้ใช้</Link>
@@ -61,6 +60,9 @@ export default function Navbar() {
                 <>
                   <li>
                     <Link href="/inventory">คลังสินค้า</Link>
+                  </li>
+                   <li>
+                     <Link href="/dashboard">แดชบอร์ด</Link>
                   </li>
                   <li>
                     <Link href="/users">ผู้ใช้</Link>
@@ -98,19 +100,22 @@ export default function Navbar() {
           {user && (
             <>
               <li>
-                <Link href="/products" onClick={() => setIsMenuOpen(false)}>สินค้า</Link>
+                <Link href="/products" onClick={() => setIsMenuOpen(false)}>
+                  {user.role === 'admin' ? 'จัดการสินค้า' : 'ร้านค้า'}
+                </Link>
               </li>
               <li>
                 <Link href="/orders" onClick={() => setIsMenuOpen(false)}>คำสั่งซื้อ</Link>
               </li>
-              <li>
-                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>แดชบอร์ด</Link>
-              </li>
+           
               <li>
                 <Link href="/profile" onClick={() => setIsMenuOpen(false)}>ข้อมูลผู้ใช้</Link>
               </li>
               {user.role === 'admin' && (
                 <>
+                  <li>
+                     <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>แดชบอร์ด</Link>
+                  </li>
                   <li>
                     <Link href="/inventory" onClick={() => setIsMenuOpen(false)}>คลังสินค้า</Link>
                   </li>

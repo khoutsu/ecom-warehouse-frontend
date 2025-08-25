@@ -28,12 +28,20 @@ export interface CreateInventoryData {
 export const getAllInventory = async (): Promise<InventoryItem[]> => {
   try {
     const inventoryRef = collection(db, 'inventory');
-    const q = query(inventoryRef, orderBy('updatedAt', 'desc'));
-    const querySnapshot = await getDocs(q);
+    // Remove orderBy to avoid index requirement, sort on client side
+    const querySnapshot = await getDocs(inventoryRef);
     
     const inventory: InventoryItem[] = [];
     querySnapshot.forEach((doc) => {
       inventory.push({ id: doc.id, ...doc.data() } as InventoryItem);
+    });
+    
+    // Sort on the client side instead
+    inventory.sort((a, b) => {
+      if (a.updatedAt && b.updatedAt) {
+        return b.updatedAt.seconds - a.updatedAt.seconds;
+      }
+      return 0;
     });
     
     return inventory;
