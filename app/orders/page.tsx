@@ -32,8 +32,21 @@ export default function OrdersPage() {
   const [showUploadModal, setShowUploadModal] = useState<string | null>(null);
   const [uploadingSlip, setUploadingSlip] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   const isAdmin = user?.role === 'admin';
+
+  const toggleOrderExpansion = (orderId: string) => {
+    setExpandedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -263,6 +276,16 @@ export default function OrdersPage() {
     }
   };
 
+  const getPaymentMethodText = (paymentMethod: string) => {
+    switch (paymentMethod) {
+      case 'transfer': return 'โอนเงินผ่านธนาคาร';
+      case 'promptpay': return 'พร้อมเพย์ (PromptPay)';
+      case 'truewallet': return 'TrueMoney Wallet';
+      case 'cod': return 'ชำระเงินปลายทาง (COD)';
+      default: return paymentMethod;
+    }
+  };
+
   const filteredOrders = orders.filter(order => {
     const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
     const matchesSearch = order.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -286,7 +309,7 @@ export default function OrdersPage() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h1>📋 {isAdmin ? 'จัดการคำสั่งซื้อ' : 'คำสั่งซื้อของฉัน'}</h1>
+        <h1> {isAdmin ? 'จัดการคำสั่งซื้อ' : 'คำสั่งซื้อของฉัน'}</h1>
         <p>{isAdmin ? 'จัดการและติดตามคำสั่งซื้อทั้งหมด' : 'ติดตามสถานะคำสั่งซื้อของคุณ'}</p>
       </div>
 
@@ -337,207 +360,219 @@ export default function OrdersPage() {
             )}
           </div>
         ) : (
-          <div className="orders-grid">
-            {filteredOrders.map((order) => (
-              <div key={order.id} className="order-card">
-                <div className="order-header">
-                  <div className="order-info">
-                    <h3>คำสั่งซื้อ #{order.id.slice(-8)}</h3>
-                    <p className="order-date">
-                      {order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('th-TH') : 'ไม่ระบุวันที่'}
-                    </p>
-                  </div>
-                  <div className="status-badges">
-                    <div 
-                      className="order-status"
-                      style={{ backgroundColor: getStatusColor(order.status) }}
-                    >
-                      {getStatusText(order.status)}
-                    </div>
-                    <div 
-                      className="payment-status"
-                      style={{ backgroundColor: getPaymentStatusColor(order.paymentStatus || 'unpaid') }}
-                    >
-                      {getPaymentStatusText(order.paymentStatus || 'unpaid')}
-                    </div>
-                  </div>
-                </div>
-
-                {isAdmin && (
-                  <div className="customer-info">
-                    <p><strong>ลูกค้า:</strong> {order.userName}</p>
-                    <p><strong>อีเมล:</strong> {order.userEmail}</p>
-                  </div>
-                )}
-
-                <div className="order-items">
-                  <h4>รายการสินค้า:</h4>
-                  {order.items.map((item, index) => (
-                    <div key={index} className="order-item">
-                      {item.imageUrl ? (
-                        <img 
-                          src={item.imageUrl} 
-                          alt={item.productName} 
-                          className="item-image"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className="item-placeholder">
-                          📦
-                        </div>
-                      )}
-                      <div className="item-details">
-                        <span className="item-name">{item.productName}</span>
-                        <span className="item-quantity">จำนวน: {item.quantity}</span>
-                        <span className="item-price">฿{item.price.toLocaleString()}</span>
+          <div className="orders-accordion">
+            {filteredOrders.map((order) => {
+              const isExpanded = expandedOrders.has(order.id);
+              return (
+                <div key={order.id} className={`order-accordion-item ${isExpanded ? 'expanded' : ''}`}>
+                  {/* Horizontal Bar - Always Visible */}
+                  <div 
+                    className="order-bar"
+                    onClick={() => toggleOrderExpansion(order.id)}
+                  >
+                    <div className="order-bar-left">
+                      <div className="order-number">
+                        <strong>#{order.id.slice(-8)}</strong>
+                        <span className="order-date">
+                          {order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('th-TH') : 'ไม่ระบุวันที่'}
+                        </span>
                       </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="shipping-info">
-                  <h4>ที่อยู่จัดส่ง:</h4>
-                  <p>{order.shippingAddress.name}</p>
-                  <p>{order.shippingAddress.address}</p>
-                  <p>{order.shippingAddress.city} {order.shippingAddress.postalCode}</p>
-                  <p>โทร: {order.shippingAddress.phone}</p>
-                </div>
-
-                <div className="order-summary">
-                  <div className="total-amount">
-                    <strong>ยอดรวม: ฿{order.totalAmount.toLocaleString()}</strong>
-                  </div>
-                  <div className="payment-method">
-                    วิธีชำระเงิน: {order.paymentMethod}
-                  </div>
-                </div>
-
-                {/* Payment Details */}
-                {order.paymentDetails && (
-                  <div className="payment-details">
-                    <h4>รายละเอียดการชำระเงิน</h4>
-                    {order.paymentDetails.paidAt && (
-                      <p><strong>วันที่ชำระ:</strong> {new Date(order.paymentDetails.paidAt.seconds * 1000).toLocaleDateString('th-TH')}</p>
-                    )}
-                    {order.paymentDetails.transactionId && (
-                      <p><strong>รหัสธุรกรรม:</strong> {order.paymentDetails.transactionId}</p>
-                    )}
-                    {order.paymentDetails.bankAccount && (
-                      <p><strong>บัญชีธนาคาร:</strong> {order.paymentDetails.bankAccount}</p>
-                    )}
-                    {order.paymentDetails.confirmedBy && (
-                      <p><strong>ยืนยันโดย:</strong> {order.paymentDetails.confirmedBy}</p>
-                    )}
-                    {order.paymentDetails.slipImageUrl && (
-                      <div className="payment-slip">
-                        <strong>หลักฐานการโอน:</strong>
-                        <img src={order.paymentDetails.slipImageUrl} alt="หลักฐานการโอน" className="slip-image" />
-                      </div>
-                    )}
-                    {order.paymentDetails.notes && (
-                      <p><strong>หมายเหตุ:</strong> {order.paymentDetails.notes}</p>
-                    )}
-                  </div>
-                )}
-
-                {order.notes && (
-                  <div className="order-notes">
-                    <h4>หมายเหตุ:</h4>
-                    <p>{order.notes}</p>
-                  </div>
-                )}
-
-                {/* Customer Payment Controls */}
-                {!isAdmin && order.paymentStatus === 'unpaid' && 
-                 (order.paymentMethod === 'transfer' || order.paymentMethod === 'promptpay' || order.paymentMethod === 'truewallet') && (
-                  <div className="customer-payment-controls">
-                    <div className="upload-section">
-                      <h4>🧾 อัปโหลดหลักฐานการชำระเงิน</h4>
-                      <p className="upload-note">กรุณาอัปโหลดหลักฐานการโอนเงินเพื่อเป็นการยืนยันการชำระเงิน</p>
-                      {!order.paymentDetails?.slipImageUrl ? (
-                        <button
-                          onClick={() => setShowUploadModal(order.id)}
-                          className="upload-slip-button"
-                        >
-                          📎 อัปโหลดหลักฐานการโอน
-                        </button>
-                      ) : (
-                        <div className="slip-uploaded">
-                          <span className="success-icon">✅</span>
-                          <span>อัปโหลดหลักฐานการโอนแล้ว</span>
-                          <button
-                            onClick={() => setShowUploadModal(order.id)}
-                            className="reupload-button"
-                          >
-                            🔄 อัปโหลดใหม่
-                          </button>
+                      {isAdmin && (
+                        <div className="customer-summary">
+                          <span>{order.userName}</span>
                         </div>
                       )}
                     </div>
-                  </div>
-                )}
-
-                {isAdmin && (
-                  <div className="order-actions">
-                    <div className="status-controls">
-                      <label>สถานะคำสั่งซื้อ:</label>
-                      <select
-                        value={order.status}
-                        onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
-                        disabled={updatingStatus === order.id}
-                        className="status-select"
-                      >
-                        <option value="pending">รอดำเนินการ</option>
-                        <option value="confirmed">ยืนยันแล้ว</option>
-                        <option value="processing">กำลังเตรียม</option>
-                        <option value="shipped">จัดส่งแล้ว</option>
-                        <option value="delivered">ส่งสำเร็จ</option>
-                        <option value="cancelled">ยกเลิก</option>
-                      </select>
+                    
+                    <div className="order-bar-center">
+                      <div className="order-amount">
+                        ฿{order.totalAmount?.toLocaleString() || 'ไม่ระบุ'}
+                      </div>
+                      <div className="order-items-count">
+                        {order.items?.length || 0} รายการ
+                      </div>
                     </div>
                     
-                    <div className="payment-controls">
-                      <label>สถานะการชำระเงิน:</label>
-                      <select
-                        value={order.paymentStatus || 'unpaid'}
-                        onChange={(e) => handlePaymentStatusUpdate(order.id, e.target.value as Order['paymentStatus'])}
-                        disabled={updatingStatus === order.id}
-                        className="payment-select"
-                      >
-                        <option value="unpaid">ยังไม่ชำระ</option>
-                        <option value="paid">ชำระแล้ว</option>
-                        <option value="refunded">คืนเงินแล้ว</option>
-                        <option value="failed">ชำระไม่สำเร็จ</option>
-                      </select>
-                      
-                      {(order.paymentStatus === 'unpaid' || !order.paymentStatus) && (
-                        <button
-                          onClick={() => setShowPaymentModal(order.id)}
-                          className="confirm-payment-button"
-                          disabled={updatingStatus === order.id}
+                    <div className="order-bar-right">
+                      <div className="status-badges-compact">
+                        <div 
+                          className="order-status-compact"
+                          style={{ backgroundColor: getStatusColor(order.status) }}
                         >
-                          💳 ยืนยันการชำระเงิน
-                        </button>
+                          {getStatusText(order.status)}
+                        </div>
+                        <div 
+                          className="payment-status-compact"
+                          style={{ backgroundColor: getPaymentStatusColor(order.paymentStatus || 'unpaid') }}
+                        >
+                          {getPaymentStatusText(order.paymentStatus || 'unpaid')}
+                        </div>
+                      </div>
+                      <div className="expand-icon">
+                        {isExpanded ? '▼' : '▶'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expandable Details */}
+                  {isExpanded && (
+                    <div className="order-details">
+                      {isAdmin && (
+                        <div className="customer-info">
+                          <h4>ข้อมูลลูกค้า:</h4>
+                          <p><strong>ชื่อ:</strong> {order.userName}</p>
+                          <p><strong>อีเมล:</strong> {order.userEmail}</p>
+                        </div>
+                      )}
+
+                      <div className="order-items">
+                        <h4>รายการสินค้า:</h4>
+                        {order.items.map((item, index) => (
+                          <div key={index} className="order-item">
+                            {item.imageUrl ? (
+                              <img 
+                                src={item.imageUrl} 
+                                alt={item.productName} 
+                                className="item-image"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div className="item-placeholder">
+                                📦
+                              </div>
+                            )}
+                            <div className="item-details">
+                              <span className="item-name">{item.productName}</span>
+                              <span className="item-quantity">จำนวน: {item.quantity}</span>
+                              <span className="item-price">฿{item.price.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="shipping-info">
+                        <h4>ที่อยู่จัดส่ง:</h4>
+                        <p>{order.shippingAddress.name}</p>
+                        <p>{order.shippingAddress.address}</p>
+                        <p>{order.shippingAddress.city} {order.shippingAddress.postalCode}</p>
+                        <p>โทร: {order.shippingAddress.phone}</p>
+                      </div>
+
+                      <div className="order-summary">
+                        <div className="total-amount">
+                          <strong>ยอดรวม: ฿{order.totalAmount.toLocaleString()}</strong>
+                        </div>
+                        <div className="payment-method">
+                          <strong>วิธีการชำระเงิน:</strong> {getPaymentMethodText(order.paymentMethod)}
+                        </div>
+                      </div>
+
+                      {/* Payment Details */}
+                      {order.paymentDetails && (
+                        <div className="payment-details">
+                          <h4>รายละเอียดการชำระเงิน</h4>
+                          {order.paymentDetails.paidAt && (
+                            <p><strong>วันที่ชำระ:</strong> {new Date(order.paymentDetails.paidAt.seconds * 1000).toLocaleDateString('th-TH')}</p>
+                          )}
+                          {order.paymentDetails.transactionId && (
+                            <p><strong>รหัสธุรกรรม:</strong> {order.paymentDetails.transactionId}</p>
+                          )}
+                          {order.paymentDetails.bankAccount && (
+                            <p><strong>บัญชีธนาคาร:</strong> {order.paymentDetails.bankAccount}</p>
+                          )}
+                          {order.paymentDetails.notes && (
+                            <p><strong>หมายเหตุ:</strong> {order.paymentDetails.notes}</p>
+                          )}
+                          {order.paymentDetails.slipImageUrl && (
+                            <div className="payment-slip">
+                              <p><strong>หลักฐานการโอนเงิน:</strong></p>
+                              <img 
+                                src={order.paymentDetails.slipImageUrl} 
+                                alt="หลักฐานการโอนเงิน"
+                                style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain' }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Admin Actions */}
+                      {isAdmin && (
+                        <div className="admin-actions">
+                          <h4>จัดการคำสั่งซื้อ</h4>
+                          <div className="status-controls">
+                            <label>สถานะคำสั่งซื้อ:</label>
+                            <select
+                              value={order.status}
+                              onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
+                              disabled={updatingStatus === order.id}
+                            >
+                              <option value="pending">รอดำเนินการ</option>
+                              <option value="confirmed">ยืนยันแล้ว</option>
+                              <option value="processing">กำลังเตรียม</option>
+                              <option value="shipped">จัดส่งแล้ว</option>
+                              <option value="delivered">ส่งสำเร็จ</option>
+                              <option value="cancelled">ยกเลิก</option>
+                            </select>
+                          </div>
+                          
+                          <div className="payment-controls">
+                            {order.paymentStatus === 'unpaid' && (
+                              <button
+                                onClick={() => setShowPaymentModal(order.id)}
+                                className="action-button confirm-payment"
+                              >
+                                ยืนยันการชำระเงิน
+                              </button>
+                            )}
+                            
+                            <button
+                              onClick={() => handleDeleteOrder(order.id)}
+                              className="action-button delete-order"
+                            >
+                              ลบคำสั่งซื้อ
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Customer Actions */}
+                      {!isAdmin && (
+                        <div className="customer-actions">
+                          {order.paymentStatus === 'unpaid' && order.paymentMethod !== 'cod' && (
+                            <div className="customer-payment-controls">
+                              <h4>การชำระเงิน</h4>
+                              <p>กรุณาอัปโหลดหลักฐานการโอนเงิน</p>
+                              <button
+                                onClick={() => setShowUploadModal(order.id)}
+                                className="action-button upload-slip"
+                              >
+                                อัปโหลดสลิป
+                              </button>
+                            </div>
+                          )}
+                          
+                          {order.paymentStatus === 'unpaid' && (
+                            <div className="slip-uploaded">
+                              <span className="status-text">อัปโหลดหลักฐานให้เรียบร้อย</span>
+                              <span className="waiting-text">แล้วรอการตรวจสอบจากแอดมิน</span>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
-                    
-                    <button
-                      onClick={() => handleDeleteOrder(order.id)}
-                      className="delete-button"
-                      title="ลบคำสั่งซื้อ"
-                    >
-                      🗑️ ลบ
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
+
+      {/* Payment Confirmation Modal */}
 
       {/* Payment Confirmation Modal */}
       {showPaymentModal && isAdmin && (
@@ -621,7 +656,7 @@ export default function OrdersPage() {
 
             <div className="upload-form">
               <div className="upload-instructions">
-                <h4>📋 คำแนะนำ</h4>
+                <h4> คำแนะนำ</h4>
                 <ul>
                   <li>อัปโหลดไฟล์รูปภาพ (JPG, PNG) เท่านั้น</li>
                   <li>ขนาดไฟล์ไม่เกิน 5MB</li>

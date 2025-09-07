@@ -173,7 +173,7 @@ export default function ProductsPage() {
         if (product.imageUrl) {
           // If it's a base64 image (starts with data:), use placeholder instead
           if (product.imageUrl.startsWith('data:')) {
-            imageUrl = '/placeholder.jpg'; // Use placeholder for base64 images
+            imageUrl = ''; // Use empty string to trigger CSS placeholder
           } else {
             imageUrl = product.imageUrl; // Use original URL
           }
@@ -393,11 +393,15 @@ export default function ProductsPage() {
               <div className="products-grid">
                 {filteredProducts.map((product) => (
                   <div key={product.id} className={`product-card ${!product.isActive ? 'inactive' : ''}`}>
-                    {product.imageUrl && (
-                      <div className="product-image">
+                    <div className="product-image">
+                      {product.imageUrl ? (
                         <img src={product.imageUrl} alt={product.name} />
-                      </div>
-                    )}
+                      ) : (
+                        <div className="product-placeholder">
+                          <span>📦</span>
+                        </div>
+                      )}
+                    </div>
                     
                     <div className="product-info">
                       <h3 className="product-name">{product.name}</h3>
@@ -745,7 +749,13 @@ export default function ProductsPage() {
                     if (!product) return null;
                     return (
                       <div key={productId} className="checkout-item">
-                        <img src={product.imageUrl || '/placeholder.jpg'} alt={product.name} />
+                        {product.imageUrl ? (
+                          <img src={product.imageUrl} alt={product.name} />
+                        ) : (
+                          <div className="product-placeholder">
+                            <span>📦</span>
+                          </div>
+                        )}
                         <div className="item-info">
                           <span className="item-name">{product.name}</span>
                           <span className="item-details">
