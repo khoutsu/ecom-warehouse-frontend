@@ -25,6 +25,9 @@ export default function EditProductPage() {
     isActive: true
   });
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+
   // Redirect if not admin
   if (!isLoading && (!user || user.role !== 'admin')) {
     router.push('/products');
@@ -52,6 +55,11 @@ export default function EditProductPage() {
             imageUrl: product.imageUrl || '',
             isActive: product.isActive
           });
+
+          // Set image preview if there's an existing image
+          if (product.imageUrl) {
+            setImagePreview(product.imageUrl);
+          }
           
           setError('');
         } catch (error: any) {
@@ -75,6 +83,93 @@ export default function EditProductPage() {
               type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
               value
     }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+        return;
+      }
+
+      // Validate file size (max 2MB for processing)
+      if (file.size > 2 * 1024 * 1024) {
+        setError('ขนาดไฟล์ต้องไม่เกิน 2MB');
+        return;
+      }
+
+      setImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      setError(''); // Clear any previous errors
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview('');
+    setFormData(prev => ({ ...prev, imageUrl: '' }));
+  };
+
+  // Convert and compress file to base64 with size limit
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions (max 400x400)
+        const maxSize = 400;
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Try different quality levels to keep under size limit
+        let quality = 0.8;
+        let result = canvas.toDataURL('image/jpeg', quality);
+        
+        // Reduce quality if still too large (target: under 100KB base64)
+        while (result.length > 100000 && quality > 0.1) {
+          quality -= 0.1;
+          result = canvas.toDataURL('image/jpeg', quality);
+        }
+        
+        resolve(result);
+      };
+      
+      img.onerror = reject;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,6 +209,12 @@ export default function EditProductPage() {
     }
 
     try {
+      // If there's an image file, convert it to base64
+      if (imageFile) {
+        const base64Image = await convertFileToBase64(imageFile);
+        formData.imageUrl = base64Image;
+      }
+
       await updateProduct(productId, formData);
       router.push('/products');
     } catch (error: any) {
@@ -211,8 +312,6 @@ export default function EditProductPage() {
                   value={formData.price}
                   onChange={handleChange}
                   className="form-input"
-                  min="0"
-                  step="0.01"
                   required
                 />
               </div>
@@ -226,26 +325,34 @@ export default function EditProductPage() {
                   value={formData.stock}
                   onChange={handleChange}
                   className="form-input"
-                  min="0"
                   required
                 />
               </div>
             </div>
 
             <div className="form-group">
-              <label htmlFor="imageUrl">URL รูปภาพ</label>
+              <label htmlFor="image">รูปภาพสินค้า</label>
               <input
-                type="url"
-                id="imageUrl"
-                name="imageUrl"
-                value={formData.imageUrl}
-                onChange={handleChange}
-                placeholder="https://example.com/image.jpg"
-                className="form-input"
+                type="file"
+                id="image"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="form-input file-input"
               />
-              {formData.imageUrl && (
+              <small className="form-help">
+                รองรับไฟล์: JPG, PNG, GIF (ขนาดไม่เกิน 5MB)
+              </small>
+              
+              {imagePreview && (
                 <div className="image-preview">
-                  <img src={formData.imageUrl} alt="Preview" />
+                  <img src={imagePreview} alt="Preview" />
+                  <button 
+                    type="button" 
+                    onClick={removeImage}
+                    className="remove-image-btn"
+                  >
+                    ลบรูปภาพ
+                  </button>
                 </div>
               )}
             </div>

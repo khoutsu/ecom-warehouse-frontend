@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getAllProducts, getActiveProducts, searchProducts, deleteProduct, Product } from '../../lib/productService';
+import { createOrder, CreateOrderData } from '../../lib/orderService';
 
 export default function ProductsPage() {
   const { user, isLoading } = useAuth();
@@ -17,6 +18,17 @@ export default function ProductsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [cart, setCart] = useState<{[productId: string]: number}>({});
   const [showCart, setShowCart] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutForm, setCheckoutForm] = useState({
+    name: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    phone: '',
+    paymentMethod: 'transfer',
+    notes: ''
+  });
 
   // Get unique categories from products
   const categories = ['all', ...new Set(products.map(product => product.category))];
@@ -134,6 +146,125 @@ export default function ProductsPage() {
       const product = products.find(p => p.id === productId);
       return total + (product ? product.price * count : 0);
     }, 0);
+  };
+
+  const handleCheckout = async () => {
+    if (!user || Object.keys(cart).length === 0) return;
+
+    // Validation
+    if (!checkoutForm.name.trim() || !checkoutForm.address.trim() || 
+        !checkoutForm.city.trim() || !checkoutForm.postalCode.trim() || 
+        !checkoutForm.phone.trim()) {
+      setError('กรุณากรอกข้อมูลที่อยู่จัดส่งให้ครบถ้วน');
+      return;
+    }
+
+    try {
+      setCheckoutLoading(true);
+      setError('');
+
+      // Prepare order items
+      const orderItems = Object.entries(cart).map(([productId, quantity]) => {
+        const product = products.find(p => p.id === productId);
+        if (!product) throw new Error('ไม่พบข้อมูลสินค้า');
+        
+        // Only store image URL or a placeholder, not base64 data
+        let imageUrl = '';
+        if (product.imageUrl) {
+          // If it's a base64 image (starts with data:), use placeholder instead
+          if (product.imageUrl.startsWith('data:')) {
+            imageUrl = '/placeholder.jpg'; // Use placeholder for base64 images
+          } else {
+            imageUrl = product.imageUrl; // Use original URL
+          }
+        }
+        
+        return {
+          productId,
+          productName: product.name,
+          quantity,
+          price: product.price,
+          imageUrl
+        };
+      });
+
+      // Create order data
+      const orderData: CreateOrderData = {
+        userId: user.id,
+        userName: user.name || user.email,
+        userEmail: user.email,
+        items: orderItems,
+        totalAmount: getCartTotal(),
+        shippingAddress: {
+          name: checkoutForm.name,
+          address: checkoutForm.address,
+          city: checkoutForm.city,
+          postalCode: checkoutForm.postalCode,
+          phone: checkoutForm.phone
+        },
+        paymentMethod: checkoutForm.paymentMethod,
+        notes: checkoutForm.notes
+      };
+
+      // Create the order
+      const orderId = await createOrder(orderData);
+      
+      // Clear cart and close checkout
+      setCart({});
+      setShowCheckout(false);
+      setShowCart(false);
+      
+      // Reset form
+      setCheckoutForm({
+        name: '',
+        address: '',
+        city: '',
+        postalCode: '',
+        phone: '',
+        paymentMethod: 'transfer',
+        notes: ''
+      });
+
+      // Show success message and redirect to orders
+      alert(`สั่งซื้อสำเร็จ! หมายเลขคำสั่งซื้อ: ${orderId.slice(-8)}`);
+      router.push('/orders');
+      
+    } catch (error: any) {
+      console.error('Error creating order:', error);
+      setError(error.message || 'ไม่สามารถสั่งซื้อสินค้าได้');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const handleCheckoutFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    
+    // Restrict phone number to numbers only
+    if (name === 'phone') {
+      const numbersOnly = value.replace(/[^0-9]/g, '');
+      setCheckoutForm(prev => ({
+        ...prev,
+        [name]: numbersOnly
+      }));
+      return;
+    }
+    
+    // Restrict postal code to numbers only
+    if (name === 'postalCode') {
+      const numbersOnly = value.replace(/[^0-9]/g, '');
+      setCheckoutForm(prev => ({
+        ...prev,
+        [name]: numbersOnly
+      }));
+      return;
+    }
+    
+    // For other fields, use normal handling
+    setCheckoutForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   // Filter products by category
@@ -272,12 +403,14 @@ export default function ProductsPage() {
                       <h3 className="product-name">{product.name}</h3>
                       <p className="product-description">{product.description}</p>
                       <div className="product-details">
-                        <span className="product-price">฿{product.price.toLocaleString()}</span>
-                        <span className="product-category">{product.category}</span>
+                        <span className="product-price">
+                          ฿{product.price > 0 ? product.price.toLocaleString() : 'ไม่ระบุราคา'}
+                        </span>
+                        <span className="product-category">{product.category || 'ไม่ระบุหมวดหมู่'}</span>
                       </div>
                       <div className="product-stock">
                         <span className={`stock-badge ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
-                          คงเหลือ: {product.stock}
+                          คงเหลือ: {product.stock > 0 ? product.stock : 'หมด'}
                         </span>
                         {!product.isActive && (
                           <span className="inactive-badge">ไม่ใช้งาน</span>
@@ -476,7 +609,7 @@ export default function ProductsPage() {
                         <div style={{ flex: 1 }}>
                           <h4 style={{ margin: '0 0 5px 0' }}>{product.name}</h4>
                           <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
-                            ฿{product.price.toLocaleString()} x {count} = ฿{(product.price * count).toLocaleString()}
+                            ฿{product.price > 0 ? product.price.toLocaleString() : 'ไม่ระบุราคา'} x {count} = ฿{product.price > 0 ? (product.price * count).toLocaleString() : 'ไม่ระบุราคา'}
                           </p>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -540,8 +673,11 @@ export default function ProductsPage() {
                     </button>
                     <button
                       onClick={() => {
-                        alert('ขณะนี้ระบบการสั่งซื้อยังไม่พร้อมใช้งาน');
-                        // TODO: Implement order functionality
+                        if (Object.keys(cart).length === 0) {
+                          alert('กรุณาเลือกสินค้าก่อนสั่งซื้อ');
+                          return;
+                        }
+                        setShowCheckout(true);
                       }}
                       style={{
                         padding: '10px 20px',
@@ -562,11 +698,472 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <div className="dashboard-footer">
-        <button onClick={() => router.push('/dashboard')} className="action-button">
-          กลับไปยังแดชบอร์ด
-        </button>
-      </div>
+      {/* Checkout Modal */}
+      {user && user.role === 'customer' && showCheckout && (
+        <div className="modal-overlay" onClick={() => setShowCheckout(false)}>
+          <div className="modal-content checkout-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header" style={{ position: 'relative', paddingRight: '50px' }}>
+              <h2>ข้อมูลการสั่งซื้อ</h2>
+              <button 
+                onClick={() => setShowCheckout(false)}
+                className="close-button"
+                style={{
+                  position: 'absolute',
+                  top: '0px',
+                  right: '0px',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '5px',
+                  lineHeight: '1',
+                  zIndex: 1,
+                  borderRadius: '50%',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f8f9fa';
+                  e.currentTarget.style.color = '#333';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#666';
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="checkout-content">
+              {/* Order Summary */}
+              <div className="order-summary-section">
+                <h3>สรุปคำสั่งซื้อ</h3>
+                <div className="checkout-items">
+                  {Object.entries(cart).map(([productId, count]) => {
+                    const product = products.find(p => p.id === productId);
+                    if (!product) return null;
+                    return (
+                      <div key={productId} className="checkout-item">
+                        <img src={product.imageUrl || '/placeholder.jpg'} alt={product.name} />
+                        <div className="item-info">
+                          <span className="item-name">{product.name}</span>
+                          <span className="item-details">
+                            ฿{product.price.toLocaleString()} × {count} = ฿{(product.price * count).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="total-section">
+                  <strong>ยอดรวมทั้งหมด: ฿{getCartTotal().toLocaleString()}</strong>
+                </div>
+              </div>
+
+              {/* Shipping Form */}
+              <div className="shipping-form-section">
+                <h3>ข้อมูลที่อยู่จัดส่ง</h3>
+                <form className="checkout-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>ชื่อผู้รับ *</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={checkoutForm.name}
+                        onChange={handleCheckoutFormChange}
+                        required
+                        placeholder="กรอกชื่อผู้รับสินค้า"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>เบอร์โทรศัพท์ *</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={checkoutForm.phone}
+                        onChange={handleCheckoutFormChange}
+                        required
+                        placeholder="กรอกเบอร์โทรศัพท์ (ตัวเลขเท่านั้น)"
+                        pattern="[0-9]*"
+                        inputMode="numeric"
+                        maxLength={10}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>ที่อยู่ *</label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={checkoutForm.address}
+                      onChange={handleCheckoutFormChange}
+                      required
+                      placeholder="กรอกที่อยู่จัดส่ง"
+                    />
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>เมือง/อำเภอ *</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={checkoutForm.city}
+                        onChange={handleCheckoutFormChange}
+                        required
+                        placeholder="กรอกเมือง/อำเภอ"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>รหัสไปรษณีย์ *</label>
+                      <input
+                        type="text"
+                        name="postalCode"
+                        value={checkoutForm.postalCode}
+                        onChange={handleCheckoutFormChange}
+                        required
+                        placeholder="กรอกรหัสไปรษณีย์ (5 หลัก)"
+                        pattern="[0-9]*"
+                        inputMode="numeric"
+                        maxLength={5}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>วิธีการชำระเงิน</label>
+                    <div className="payment-methods">
+                      <div className="payment-option">
+                        <input
+                          type="radio"
+                          id="transfer"
+                          name="paymentMethod"
+                          value="transfer"
+                          checked={checkoutForm.paymentMethod === 'transfer'}
+                          onChange={handleCheckoutFormChange}
+                        />
+                        <label htmlFor="transfer" className="payment-option-label">
+                          <div className="payment-info">
+                            <strong>โอนเงินผ่านธนาคาร</strong>
+                            <span>โอนเงินเข้าบัญชีธนาคาร</span>
+                          </div>
+                        </label>
+                      </div>
+
+                      <div className="payment-option">
+                        <input
+                          type="radio"
+                          id="promptpay"
+                          name="paymentMethod"
+                          value="promptpay"
+                          checked={checkoutForm.paymentMethod === 'promptpay'}
+                          onChange={handleCheckoutFormChange}
+                        />
+                        <label htmlFor="promptpay" className="payment-option-label">
+                          <div className="payment-info">
+                            <strong>พร้อมเพย์ (PromptPay)</strong>
+                            <span>สแกน QR Code หรือโอนผ่านเบอร์โทร</span>
+                          </div>
+                        </label>
+                      </div>
+
+                      <div className="payment-option">
+                        <input
+                          type="radio"
+                          id="cod"
+                          name="paymentMethod"
+                          value="cod"
+                          checked={checkoutForm.paymentMethod === 'cod'}
+                          onChange={handleCheckoutFormChange}
+                        />
+                        <label htmlFor="cod" className="payment-option-label">
+                          <div className="payment-info">
+                            <strong>ชำระเงินปลายทาง (COD)</strong>
+                            <span>ชำระเงินเมื่อได้รับสินค้า</span>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Payment Details */}
+                    {checkoutForm.paymentMethod === 'transfer' && (
+                      <div className="payment-details">
+                        <div className="bank-info">
+                          <p><strong>ธนาคารกสิกรไทย</strong></p>
+                          <p>เลขที่บัญชี: <strong>123-4-56789-0</strong></p>
+                          <p>ชื่อบัญชี: <strong>บริษัท อีคอม แวร์เฮาส์ จำกัด</strong></p>
+                          <p className="note"> กรุณาโอนเงินตามจำนวนที่แสดงและเก็บหลักฐานการโอนเงิน</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {checkoutForm.paymentMethod === 'promptpay' && (
+                      <div className="payment-details">
+                        <h4> รายละเอียด PromptPay</h4>
+                        <div className="promptpay-info">
+                          <p><strong>เบอร์โทร PromptPay:</strong> 089-123-4567</p>
+                          <p><strong>ชื่อบัญชี:</strong> บริษัท อีคอม แวร์เฮาส์ จำกัด</p>
+                          <div className="qr-placeholder">
+                            <p> QR Code สำหรับชำระเงิน</p>
+                            <div className="qr-box">[QR Code จะแสดงหลังยืนยันคำสั่งซื้อ]</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {checkoutForm.paymentMethod === 'cod' && (
+                      <div className="payment-details">
+                        <h4>ชำระเงินปลายทาง (COD)</h4>
+                        <div className="cod-info">
+                          <p>✅ ชำระเงินเมื่อได้รับสินค้า</p>
+                          <p>✅ รับชำระเงินสด</p>
+                          <p className="note"> กรุณาเตรียมเงินสดให้พอดีจำนวน และ ส่งเฉพาะในเชียงใหม่เท่่านั้น</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label>หมายเหตุ</label>
+                    <textarea
+                      name="notes"
+                      value={checkoutForm.notes}
+                      onChange={handleCheckoutFormChange}
+                      placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"
+                      rows={3}
+                    />
+                  </div>
+                </form>
+              </div>
+
+              {error && <div className="error-message">{error}</div>}
+
+              <div className="checkout-actions">
+                <button
+                  onClick={() => setShowCheckout(false)}
+                  className="cancel-button"
+                  disabled={checkoutLoading}
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={handleCheckout}
+                  className="confirm-button"
+                  disabled={checkoutLoading}
+                >
+                  {checkoutLoading ? 'กำลังสั่งซื้อ...' : 'ยืนยันการสั่งซื้อ'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+// Add CSS styles for enhanced payment methods
+const paymentStyles = `
+  .payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .payment-option {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0;
+    transition: all 0.2s ease;
+    overflow: hidden;
+  }
+
+  .payment-option:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+  }
+
+  .payment-option input[type="radio"] {
+    display: none;
+  }
+
+  .payment-option input[type="radio"]:checked + .payment-option-label {
+    background: #f8f9ff;
+    border-color: #007bff;
+  }
+
+  .payment-option-label {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    cursor: pointer;
+    margin: 0;
+    width: 100%;
+    transition: all 0.2s ease;
+  }
+
+  .payment-option-label:hover {
+    background: #f8f9fa;
+  }
+
+  .payment-icon {
+    font-size: 2rem;
+    margin-right: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: #f8f9fa;
+    border-radius: 50%;
+  }
+
+  .payment-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .payment-info strong {
+    color: #495057;
+    font-size: 1rem;
+  }
+
+  .payment-info span {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+
+  .payment-details {
+    margin-top: 1rem;
+    padding: 1.5rem;
+    background: #f8f9ff;
+    border: 1px solid #e3e8ff;
+    border-radius: 8px;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .payment-details h4 {
+    margin: 0 0 1rem 0;
+    color: #495057;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .bank-info,
+  .promptpay-info,
+  .wallet-info,
+  .cod-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .bank-info p,
+  .promptpay-info p,
+  .wallet-info p,
+  .cod-info p {
+    margin: 0;
+    color: #495057;
+  }
+
+  .bank-info strong,
+  .promptpay-info strong,
+  .wallet-info strong,
+  .cod-info strong {
+    color: #007bff;
+  }
+
+  .note {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #856404;
+  }
+
+  .qr-placeholder {
+    margin-top: 1rem;
+    text-align: center;
+  }
+
+  .qr-box {
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-top: 0.5rem;
+    color: #6c757d;
+    font-style: italic;
+  }
+
+  .cod-info p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .cod-info .note {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+
+  @media (max-width: 768px) {
+    .payment-methods {
+      gap: 0.75rem;
+    }
+
+    .payment-option-label {
+      padding: 0.75rem;
+    }
+
+    .payment-icon {
+      width: 50px;
+      height: 50px;
+      font-size: 1.5rem;
+      margin-right: 0.75rem;
+    }
+
+    .payment-info strong {
+      font-size: 0.9rem;
+    }
+
+    .payment-info span {
+      font-size: 0.8rem;
+    }
+
+    .payment-details {
+      padding: 1rem;
+    }
+  }
+`;
+
+// Inject payment styles
+if (typeof window !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = paymentStyles;
+  if (!document.head.querySelector('style[data-payment-method-styles]')) {
+    styleElement.setAttribute('data-payment-method-styles', 'true');
+    document.head.appendChild(styleElement);
+  }
 }

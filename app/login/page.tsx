@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -10,8 +10,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const [loginSuccessful, setLoginSuccessful] = useState(false);
+  const { login, user } = useAuth();
   const router = useRouter();
+
+  // Handle redirect after successful login and user context update
+  useEffect(() => {
+    if (loginSuccessful && user) {
+      if (user.role === 'customer') {
+        router.push('/');
+      } else {
+        router.push('/dashboard');
+      }
+    }
+  }, [user, loginSuccessful, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +38,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      router.push('/dashboard');
+      setLoginSuccessful(true);
     } catch (error: any) {
       setError(error.message || 'การเข้าสู่ระบบล้มเหลว กรุณาลองใหม่อีกครั้ง');
     } finally {

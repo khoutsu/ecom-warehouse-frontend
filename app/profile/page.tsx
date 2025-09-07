@@ -151,24 +151,6 @@ export default function UserProfilePage() {
                 {isAdmin ? '👑 ผู้ดูแลระบบ (Admin)' : '👤 ผู้ใช้ทั่วไป (Customer)'}
               </span>
             </div>
-
-            <div style={{ 
-              backgroundColor: '#f8f9fa', 
-              padding: '20px', 
-              borderRadius: '8px'
-            }}>
-              <label style={{ 
-                display: 'block', 
-                fontWeight: 'bold', 
-                color: '#495057',
-                marginBottom: '5px'
-              }}>
-                รหัสผู้ใช้:
-              </label>
-              <span style={{ color: '#666', fontSize: '14px', fontFamily: 'monospace' }}>
-                {user.id}
-              </span>
-            </div>
           </div>
         </div>
 

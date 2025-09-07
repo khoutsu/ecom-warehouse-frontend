@@ -1,0 +1,14 @@
+<!-- This is a placeholder for the default product image -->
+<!-- The actual placeholder.jpg file should be added to the public folder -->
+<!-- For now, this serves as a reference that a placeholder image is needed -->
+
+Placeholder Image Reference:
+- Location: /public/placeholder.jpg
+- Size: Small (under 50KB recommended)
+- Dimensions: 200x200 pixels recommended
+- Format: JPG or PNG
+
+This placeholder will be used when:
+1. Product has no image
+2. Product image is too large (base64)
+3. Product image fails to load

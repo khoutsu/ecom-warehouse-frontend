@@ -402,8 +402,8 @@ export default function InventoryPage() {
                           onClick={() => openEditModal(item)}
                           style={{
                             padding: '6px 12px',
-                            backgroundColor: '#007bff',
-                            color: 'white',
+                            backgroundColor: '#e7e748d6',
+                            color: 'black',
                             border: 'none',
                             borderRadius: '4px',
                             cursor: 'pointer',
