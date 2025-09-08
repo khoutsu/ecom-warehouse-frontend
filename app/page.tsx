@@ -45,9 +45,9 @@ export default function Home() {
             ) : (
               // Customer welcome
               <>
-                <h1>ยินดีต้อนรับสู่ร้านค้าผลิตภัณฑ์จานใบไม้</h1>
+                <h1>ยินดีต้อนรับสู่ร้านค้าผลิตภัณฑ์จานใบไม้ วิสาหกิจชุมชนป่าต้นผึ้ง</h1>
                 <p>สวัสดี คุณ{user.name}! ลูกค้า</p>
-                <p className="welcome-subtitle">เลือกซื้อผลิตภัณฑ์จานใบไม้คุณภาพดีจากเรา</p>
+                <p className="welcome-subtitle">เลือกซื้อผลิตภัณฑ์จานใบไม้คุณภาพดีจากชุมชนของเรา</p>
               </>
             )}     
             <div className="welcome-actions">

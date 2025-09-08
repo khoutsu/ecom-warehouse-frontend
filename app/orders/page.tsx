@@ -13,6 +13,7 @@ import {
   deleteOrder, 
   Order 
 } from '../../lib/orderService';
+import { savePaymentSlipInfo, saveThaiPaymentSlip } from '../../lib/paymentSlipService';
 
 export default function OrdersPage() {
   const { user, isLoading } = useAuth();
@@ -107,7 +108,21 @@ export default function OrdersPage() {
   const handleDeleteOrder = async (orderId: string) => {
     if (!isAdmin) return;
     
-    if (!confirm('คุณแน่ใจหรือไม่ที่จะลบคำสั่งซื้อนี้?')) {
+    // Find the order to check its payment status
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+    
+    let confirmMessage = 'คุณแน่ใจหรือไม่ที่จะลบคำสั่งซื้อนี้?';
+    
+    if (order.paymentStatus === 'paid') {
+      confirmMessage = '⚠️ คำเตือน: คำสั่งซื้อนี้ชำระเงินแล้ว การลบจะไม่คืนสินค้าเข้าสต็อก เพราะถือว่าขายแล้ว\n\nคุณแน่ใจหรือไม่ที่จะลบคำสั่งซื้อนี้?';
+    } else if (order.status === 'cancelled') {
+      confirmMessage = 'คำสั่งซื้อนี้ถูกยกเลิกแล้ว การลบจะไม่มีผลต่อสต็อกสินค้า\n\nคุณแน่ใจหรือไม่ที่จะลบคำสั่งซื้อนี้?';
+    } else {
+      confirmMessage = 'การลบคำสั่งซื้อนี้จะคืนสินค้าเข้าสต็อกอัตโนมัติ\n\nคุณแน่ใจหรือไม่ที่จะลบคำสั่งซื้อนี้?';
+    }
+    
+    if (!confirm(confirmMessage)) {
       return;
     }
     
@@ -196,8 +211,43 @@ export default function OrdersPage() {
       reader.onload = async (e) => {
         try {
           const base64 = e.target?.result as string;
+          const transactionId = `slip_${Date.now()}`;
           
-          await uploadPaymentSlip(orderId, base64, `slip_${Date.now()}`);
+          // Upload payment slip with enhanced details
+          await uploadPaymentSlip(orderId, base64, transactionId, {
+            amount: undefined, // Could be extracted from form
+            transferDate: new Date().toLocaleDateString('th-TH'),
+            transferTime: new Date().toLocaleTimeString('th-TH'),
+            bankName: 'ธนาคารที่โอน', // Could be from form
+            referenceNumber: transactionId,
+            notes: 'อัปโหลดผ่านระบบ'
+          });
+
+          // Save detailed payment slip record
+          if (user) {
+            try {
+              const order = orders.find(o => o.id === orderId);
+              await savePaymentSlipInfo({
+                orderId,
+                customerId: user.id,
+                customerEmail: user.email || '',
+                customerName: (user as any).displayName || user.email || 'ลูกค้า',
+                slipImageUrl: base64,
+                amount: order?.totalAmount || 0,
+                transferDate: new Date().toLocaleDateString('th-TH'),
+                transferTime: new Date().toLocaleTimeString('th-TH'),
+                referenceNumber: transactionId,
+                bankName: 'ธนาคารที่โอน',
+                transactionId: transactionId,
+                notes: `อัปโหลดไฟล์: ${selectedFile.name}`
+              });
+              
+              console.log('Payment slip record saved successfully');
+            } catch (slipError) {
+              console.warn('Error saving payment slip record:', slipError);
+              // Continue even if slip record saving fails
+            }
+          }
 
           // Update local state
           setOrders(prev => prev.map(order => 
@@ -208,7 +258,8 @@ export default function OrdersPage() {
                     ...order.paymentDetails,
                     method: order.paymentDetails?.method || order.paymentMethod || 'transfer',
                     slipImageUrl: 'uploaded',
-                    transactionId: `slip_${Date.now()}`
+                    transactionId: transactionId,
+                    uploadedAt: { seconds: Date.now() / 1000 } as any
                   }
                 }
               : order

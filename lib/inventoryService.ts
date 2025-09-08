@@ -296,3 +296,63 @@ export const getInventoryStats = async () => {
     throw error;
   }
 };
+
+// Reduce inventory quantities for order items
+export const reduceInventoryForOrder = async (orderItems: { productId: string; quantity: number }[]): Promise<void> => {
+  try {
+    console.log('Reducing inventory for order items:', orderItems);
+    
+    for (const item of orderItems) {
+      // Find inventory item by productId
+      const inventoryRef = collection(db, 'inventory');
+      const q = query(inventoryRef, where('productId', '==', item.productId));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const inventoryDoc = querySnapshot.docs[0];
+        const inventoryData = inventoryDoc.data() as InventoryItem;
+        const newQuantity = Math.max(0, inventoryData.quantity - item.quantity);
+        
+        console.log(`Reducing ${inventoryData.productName}: ${inventoryData.quantity} - ${item.quantity} = ${newQuantity}`);
+        
+        // Update inventory quantity
+        await updateInventoryQuantity(inventoryDoc.id, newQuantity);
+      } else {
+        console.warn(`No inventory found for product ID: ${item.productId}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error reducing inventory for order:', error);
+    throw error;
+  }
+};
+
+// Restore inventory quantities when order is cancelled
+export const restoreInventoryForOrder = async (orderItems: { productId: string; quantity: number }[]): Promise<void> => {
+  try {
+    console.log('Restoring inventory for cancelled order items:', orderItems);
+    
+    for (const item of orderItems) {
+      // Find inventory item by productId
+      const inventoryRef = collection(db, 'inventory');
+      const q = query(inventoryRef, where('productId', '==', item.productId));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const inventoryDoc = querySnapshot.docs[0];
+        const inventoryData = inventoryDoc.data() as InventoryItem;
+        const newQuantity = inventoryData.quantity + item.quantity;
+        
+        console.log(`Restoring ${inventoryData.productName}: ${inventoryData.quantity} + ${item.quantity} = ${newQuantity}`);
+        
+        // Update inventory quantity
+        await updateInventoryQuantity(inventoryDoc.id, newQuantity);
+      } else {
+        console.warn(`No inventory found for product ID: ${item.productId}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error restoring inventory for order:', error);
+    throw error;
+  }
+};

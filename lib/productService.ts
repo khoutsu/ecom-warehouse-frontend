@@ -264,3 +264,45 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
     throw error;
   }
 };
+
+// Reduce product stock for order items
+export const reduceProductStockForOrder = async (orderItems: { productId: string; quantity: number }[]): Promise<void> => {
+  try {
+    console.log('Reducing product stock for order items:', orderItems);
+    
+    for (const item of orderItems) {
+      const product = await getProductById(item.productId);
+      if (product) {
+        const newStock = Math.max(0, product.stock - item.quantity);
+        console.log(`Reducing ${product.name}: ${product.stock} - ${item.quantity} = ${newStock}`);
+        await updateProductStock(item.productId, newStock);
+      } else {
+        console.warn(`Product not found for ID: ${item.productId}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error reducing product stock for order:', error);
+    throw error;
+  }
+};
+
+// Restore product stock when order is cancelled
+export const restoreProductStockForOrder = async (orderItems: { productId: string; quantity: number }[]): Promise<void> => {
+  try {
+    console.log('Restoring product stock for cancelled order items:', orderItems);
+    
+    for (const item of orderItems) {
+      const product = await getProductById(item.productId);
+      if (product) {
+        const newStock = product.stock + item.quantity;
+        console.log(`Restoring ${product.name}: ${product.stock} + ${item.quantity} = ${newStock}`);
+        await updateProductStock(item.productId, newStock);
+      } else {
+        console.warn(`Product not found for ID: ${item.productId}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error restoring product stock for order:', error);
+    throw error;
+  }
+};
