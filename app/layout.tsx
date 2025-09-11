@@ -14,13 +14,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
-      <body className="h-full m-0 p-0">
+    <html lang="th" className="h-full">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body className="h-full m-0 p-0" suppressHydrationWarning={true}>
         <AuthProvider>
-          <Navbar />
-          <main className="min-h-screen">
-            {children}
-          </main>
+          <div id="root">
+            <Navbar />
+            <main className="min-h-screen">{children}</main>
+          </div>
         </AuthProvider>
       </body>
     </html>

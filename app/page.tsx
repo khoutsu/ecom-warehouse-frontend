@@ -34,7 +34,6 @@ export default function Home() {
         {/* Background slideshow elements */}
           <div className="welcome-bg-2"></div>
           <div className="welcome-bg-3"></div>
-          
           <div className="welcome-content">
                        {user.role === 'admin' ? (
               // Admin welcome
@@ -46,7 +45,7 @@ export default function Home() {
               // Customer welcome
               <>
                 <h1>ยินดีต้อนรับสู่ร้านค้าผลิตภัณฑ์จานใบไม้ วิสาหกิจชุมชนป่าต้นผึ้ง</h1>
-                <p>สวัสดี คุณ{user.name}! ลูกค้า</p>
+                <p>สวัสดี คุณ{user.name}ลูกค้า</p>
                 <p className="welcome-subtitle">เลือกซื้อผลิตภัณฑ์จานใบไม้คุณภาพดีจากชุมชนของเรา</p>
               </>
             )}     
@@ -80,7 +79,6 @@ export default function Home() {
                   </button>
                 </>
               ) : (
-                
                 // Customer buttons
                 <>
                   <button 

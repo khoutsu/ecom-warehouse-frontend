@@ -24,7 +24,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link href="/" className="navbar-brand" >
-          ร้านค้าวิสาหกิจชุมชนป่่าต้นผี้ง
+          ร้านค้าวิสาหกิจชุมชนป่าต้นผี้ง
         </Link>
         {/* Mobile menu button */}
         <button 

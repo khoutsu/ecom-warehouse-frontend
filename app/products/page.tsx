@@ -902,9 +902,9 @@ export default function ProductsPage() {
                     {checkoutForm.paymentMethod === 'transfer' && (
                       <div className="payment-details">
                         <div className="bank-info">
-                          <p><strong>ธนาคารกสิกรไทย</strong></p>
-                          <p>เลขที่บัญชี: <strong>123-4-56789-0</strong></p>
-                          <p>ชื่อบัญชี: <strong>บริษัท อีคอม แวร์เฮาส์ จำกัด</strong></p>
+                          <p><strong>ธนาคาร ธ.ก.ส</strong></p>
+                          <p>เลขที่บัญชี: <strong>020-04401-729</strong></p>
+                          <p>ชื่อบัญชี: <strong>ธ.ก.ส วิสาหกิจชุมชนป่าต้นผึ้ง </strong></p>
                           <p className="note"> กรุณาโอนเงินตามจำนวนที่แสดงและเก็บหลักฐานการโอนเงิน</p>
                         </div>
                       </div>
@@ -914,11 +914,23 @@ export default function ProductsPage() {
                       <div className="payment-details">
                         <h4> รายละเอียด PromptPay</h4>
                         <div className="promptpay-info">
-                          <p><strong>เบอร์โทร PromptPay:</strong> 089-123-4567</p>
-                          <p><strong>ชื่อบัญชี:</strong> บริษัท อีคอม แวร์เฮาส์ จำกัด</p>
+                          <p><strong>ชื่อบัญชี:</strong> นาง สายสวาท ไทยกรณ์</p>
                           <div className="qr-placeholder">
                             <p> QR Code สำหรับชำระเงิน</p>
-                            <div className="qr-box">[QR Code จะแสดงหลังยืนยันคำสั่งซื้อ]</div>
+                            <div className="qr-box">
+                              <img 
+                                src="/thai-qr-payment.jpg" 
+                                alt="Thai QR Payment Code" 
+                                style={{
+                                  maxWidth: '250px',
+                                  width: '100%',
+                                  height: 'auto',
+                                  border: '2px solid #ddd',
+                                  borderRadius: '8px',
+                                  marginTop: '10px'
+                                }}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
