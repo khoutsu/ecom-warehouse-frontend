@@ -73,7 +73,7 @@ export const syncInventoryFromProduct = async (
         productCategory,
         quantity: newStock,
         minStock: 10, // Default values
-        maxStock: 1000,
+        maxStock: 100,
         lastRestocked: serverTimestamp(),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()

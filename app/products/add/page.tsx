@@ -5,6 +5,17 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { createProduct, CreateProductData } from '../../../lib/productService';
 
+// Form state interface that allows string inputs for numbers
+interface FormState {
+  name: string;
+  description: string;
+  price: string;
+  category: string;
+  stock: string;
+  imageUrl: string;
+  isActive: boolean;
+}
+
 export default function AddProductPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
@@ -12,12 +23,12 @@ export default function AddProductPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
-  const [formData, setFormData] = useState<CreateProductData>({
+  const [formData, setFormData] = useState<FormState>({
     name: '',
     description: '',
-    price: 0,
+    price: '',
     category: '',
-    stock: 0,
+    stock: '',
     imageUrl: '',
     isActive: true
   });
@@ -36,9 +47,7 @@ export default function AddProductPage() {
     
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : 
-              type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
-              value
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
   };
 
@@ -134,6 +143,10 @@ export default function AddProductPage() {
     setError('');
     setLoading(true);
 
+    // Convert string values to numbers for validation
+    const price = parseFloat(formData.price) || 0;
+    const stock = parseInt(formData.stock) || 0;
+
     // Validation
     if (!formData.name.trim()) {
       setError('กรุณากรอกชื่อสินค้า');
@@ -147,7 +160,7 @@ export default function AddProductPage() {
       return;
     }
 
-    if (formData.price <= 0) {
+    if (price <= 0) {
       setError('กรุณากรอกราคาที่ถูกต้อง');
       setLoading(false);
       return;
@@ -159,20 +172,31 @@ export default function AddProductPage() {
       return;
     }
 
-    if (formData.stock < 0) {
+    if (stock < 0) {
       setError('จำนวนคงเหลือต้องไม่น้อยกว่า 0');
       setLoading(false);
       return;
     }
 
     try {
+      // Create product data with converted numbers
+      const productData: CreateProductData = {
+        name: formData.name,
+        description: formData.description,
+        price: price,
+        category: formData.category,
+        stock: stock,
+        imageUrl: formData.imageUrl,
+        isActive: formData.isActive
+      };
+
       // If there's an image file, convert it to base64
       if (imageFile) {
         const base64Image = await convertFileToBase64(imageFile);
-        formData.imageUrl = base64Image;
+        productData.imageUrl = base64Image;
       }
 
-      await createProduct(formData);
+      await createProduct(productData);
       setSuccess('เพิ่มสินค้าสำเร็จ และซิงค์คลังสินค้าแล้ว!');
       setTimeout(() => {
         router.push('/products');
@@ -256,6 +280,7 @@ export default function AddProductPage() {
                   value={formData.price}
                   onChange={handleChange}
                   className="form-input"
+                  placeholder="กรอกราคาสินค้า"
                   min="0"
                   step="0.01"
                   required
@@ -272,6 +297,7 @@ export default function AddProductPage() {
                   onChange={handleChange}
                   className="form-input"
                   min="0"
+                  placeholder="กรอกจำนวนสินค้า"
                   required
                 />
               </div>

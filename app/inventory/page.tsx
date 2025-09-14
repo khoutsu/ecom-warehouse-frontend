@@ -6,6 +6,16 @@ import { useRouter } from 'next/navigation';
 import { getAllInventory, createInventoryItem, updateInventoryItem, deleteInventoryItem, InventoryItem, CreateInventoryData } from '../../lib/inventoryService';
 import { getAllProducts, Product, updateProductStock } from '../../lib/productService';
 
+// Form state interface for string inputs
+interface FormData {
+  productId: string;
+  productName: string;
+  productCategory: string;
+  quantity: string;
+  minStock: string;
+  maxStock: string;
+}
+
 export default function InventoryPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
@@ -19,13 +29,13 @@ export default function InventoryPage() {
   const [success, setSuccess] = useState('');
 
   // Form data
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     productId: '',
     productName: '',
     productCategory: '',
-    quantity: 0,
-    minStock: 0,
-    maxStock: 0
+    quantity: '',
+    minStock: '',
+    maxStock: ''
   });
 
   // Redirect if not admin
@@ -63,9 +73,7 @@ export default function InventoryPage() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'quantity' || name === 'minStock' || name === 'maxStock' 
-        ? parseInt(value) || 0 
-        : value
+      [name]: value
     }));
 
     // Auto-fill product name and category when product is selected
@@ -86,7 +94,18 @@ export default function InventoryPage() {
     e.preventDefault();
     try {
       setError('');
-      await createInventoryItem(formData as CreateInventoryData);
+      
+      // Convert form data to proper types
+      const inventoryData: CreateInventoryData = {
+        productId: formData.productId,
+        productName: formData.productName,
+        productCategory: formData.productCategory,
+        quantity: parseInt(formData.quantity) || 0,
+        minStock: parseInt(formData.minStock) || 0,
+        maxStock: parseInt(formData.maxStock) || 0
+      };
+      
+      await createInventoryItem(inventoryData);
       setSuccess('เพิ่มรายการสินค้าคงคลังสำเร็จ และอัปเดตสต็อกสินค้าแล้ว');
       setShowAddModal(false);
       resetForm();
@@ -103,7 +122,18 @@ export default function InventoryPage() {
 
     try {
       setError('');
-      await updateInventoryItem(editingItem.id, formData);
+      
+      // Convert form data to proper types
+      const updateData: Partial<CreateInventoryData> = {
+        productId: formData.productId,
+        productName: formData.productName,
+        productCategory: formData.productCategory,
+        quantity: parseInt(formData.quantity) || 0,
+        minStock: parseInt(formData.minStock) || 0,
+        maxStock: parseInt(formData.maxStock) || 0
+      };
+      
+      await updateInventoryItem(editingItem.id, updateData);
       setSuccess('อัปเดตรายการสินค้าคงคลังสำเร็จ และซิงค์สต็อกสินค้าแล้ว');
       setShowEditModal(false);
       setEditingItem(null);
@@ -135,9 +165,9 @@ export default function InventoryPage() {
       productId: item.productId,
       productName: item.productName,
       productCategory: item.productCategory,
-      quantity: item.quantity,
-      minStock: item.minStock,
-      maxStock: item.maxStock
+      quantity: item.quantity.toString(),
+      minStock: item.minStock.toString(),
+      maxStock: item.maxStock.toString()
     });
     setShowEditModal(true);
   };
@@ -147,9 +177,9 @@ export default function InventoryPage() {
       productId: '',
       productName: '',
       productCategory: '',
-      quantity: 0,
-      minStock: 0,
-      maxStock: 0
+      quantity: '',
+      minStock: '',
+      maxStock: ''
     });
   };
 
@@ -507,6 +537,7 @@ export default function InventoryPage() {
                   value={formData.quantity}
                   onChange={handleInputChange}
                   required
+                  placeholder="กรอกจำนวนสินค้า"
                   min="0"
                   style={{
                     width: '100%',
@@ -529,6 +560,7 @@ export default function InventoryPage() {
                     value={formData.minStock}
                     onChange={handleInputChange}
                     required
+                    placeholder="สต็อกขั้นต่ำ"
                     min="0"
                     style={{
                       width: '100%',
@@ -550,6 +582,7 @@ export default function InventoryPage() {
                     value={formData.maxStock}
                     onChange={handleInputChange}
                     required
+                    placeholder="สต็อกขั้นสูง"
                     min="0"
                     style={{
                       width: '100%',
@@ -650,6 +683,7 @@ export default function InventoryPage() {
                   value={formData.quantity}
                   onChange={handleInputChange}
                   required
+                  placeholder="กรอกจำนวนสินค้า"
                   min="0"
                   style={{
                     width: '100%',
@@ -672,6 +706,7 @@ export default function InventoryPage() {
                     value={formData.minStock}
                     onChange={handleInputChange}
                     required
+                    placeholder="สต็อกขั้นต่ำ"
                     min="0"
                     style={{
                       width: '100%',
@@ -693,6 +728,7 @@ export default function InventoryPage() {
                     value={formData.maxStock}
                     onChange={handleInputChange}
                     required
+                    placeholder="สต็อกขั้นสูง"
                     min="0"
                     style={{
                       width: '100%',

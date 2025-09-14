@@ -5,6 +5,17 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useRouter, useParams } from 'next/navigation';
 import { getProductById, updateProduct, CreateProductData } from '../../../../lib/productService';
 
+// Form state interface that allows string inputs for numbers
+interface FormState {
+  name: string;
+  description: string;
+  price: string;
+  category: string;
+  stock: string;
+  imageUrl: string;
+  isActive: boolean;
+}
+
 export default function EditProductPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
@@ -15,12 +26,12 @@ export default function EditProductPage() {
   const [productLoading, setProductLoading] = useState(true);
   const [error, setError] = useState('');
   
-  const [formData, setFormData] = useState<CreateProductData>({
+  const [formData, setFormData] = useState<FormState>({
     name: '',
     description: '',
-    price: 0,
+    price: '',
     category: '',
-    stock: 0,
+    stock: '',
     imageUrl: '',
     isActive: true
   });
@@ -49,9 +60,9 @@ export default function EditProductPage() {
           setFormData({
             name: product.name,
             description: product.description,
-            price: product.price,
+            price: product.price.toString(),
             category: product.category,
-            stock: product.stock,
+            stock: product.stock.toString(),
             imageUrl: product.imageUrl || '',
             isActive: product.isActive
           });
@@ -79,9 +90,7 @@ export default function EditProductPage() {
     
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : 
-              type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
-              value
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
   };
 
@@ -177,6 +186,10 @@ export default function EditProductPage() {
     setError('');
     setLoading(true);
 
+    // Convert string values to numbers for validation
+    const price = parseFloat(formData.price) || 0;
+    const stock = parseInt(formData.stock) || 0;
+
     // Validation
     if (!formData.name.trim()) {
       setError('กรุณากรอกชื่อสินค้า');
@@ -190,7 +203,7 @@ export default function EditProductPage() {
       return;
     }
 
-    if (formData.price <= 0) {
+    if (price <= 0) {
       setError('กรุณากรอกราคาที่ถูกต้อง');
       setLoading(false);
       return;
@@ -202,20 +215,31 @@ export default function EditProductPage() {
       return;
     }
 
-    if (formData.stock < 0) {
+    if (stock < 0) {
       setError('จำนวนคงเหลือต้องไม่น้อยกว่า 0');
       setLoading(false);
       return;
     }
 
     try {
+      // Create product data with converted numbers
+      const productData: CreateProductData = {
+        name: formData.name,
+        description: formData.description,
+        price: price,
+        category: formData.category,
+        stock: stock,
+        imageUrl: formData.imageUrl,
+        isActive: formData.isActive
+      };
+
       // If there's an image file, convert it to base64
       if (imageFile) {
         const base64Image = await convertFileToBase64(imageFile);
-        formData.imageUrl = base64Image;
+        productData.imageUrl = base64Image;
       }
 
-      await updateProduct(productId, formData);
+      await updateProduct(productId, productData);
       router.push('/products');
     } catch (error: any) {
       setError(error.message || 'ไม่สามารถอัปเดตสินค้าได้');
@@ -312,6 +336,9 @@ export default function EditProductPage() {
                   value={formData.price}
                   onChange={handleChange}
                   className="form-input"
+                  placeholder="กรอกราคาสินค้า"
+                  min="0"
+                  step="0.01"
                   required
                 />
               </div>
@@ -325,6 +352,8 @@ export default function EditProductPage() {
                   value={formData.stock}
                   onChange={handleChange}
                   className="form-input"
+                  placeholder="กรอกจำนวนสินค้า"
+                  min="0"
                   required
                 />
               </div>
