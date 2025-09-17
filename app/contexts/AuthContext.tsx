@@ -102,6 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         uid: userCredential.user.uid,
         name: name,
         email: email,
+        password: btoa(password), // Simple encoding for demo
         role: 'customer', // Default role for new registrations
         isActive: true
       });

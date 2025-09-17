@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getAllProducts, getActiveProducts, searchProducts, deleteProduct, Product } from '../../lib/productService';
 import { createOrder, CreateOrderData } from '../../lib/orderService';
+import PopularProducts from '../../components/PopularProducts';
 
 export default function ProductsPage() {
   const { user, isLoading } = useAuth();
@@ -290,6 +291,19 @@ export default function ProductsPage() {
         <h1>{user.role === 'admin' ? 'จัดการสินค้า' : 'ร้านค้า ผลิตภัณฑ์จานใบไม้'}</h1>
         <p>{user.role === 'admin' ? 'ดูและจัดการสินค้าในระบบ' : 'เลือกซื้อสินค้าคุณภาพดี ราคาเป็นมิตร'}</p>
       </div>
+
+      {/* Popular Products Section for Customers */}
+      {user.role !== 'admin' && (
+        <div style={{ 
+          backgroundColor: 'white', 
+          borderRadius: '12px', 
+          padding: '20px',
+          marginBottom: '30px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)' 
+        }}>
+          <PopularProducts showRecommendations={true} limitCount={6} />
+        </div>
+      )}
 
       {/* Search and Filter Section */}
       <div className="products-controls">

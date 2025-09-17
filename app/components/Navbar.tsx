@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import NotificationBell from '../../components/NotificationBell';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -69,6 +70,9 @@ export default function Navbar() {
           )}
           {user ? (
             <>
+              <li>
+                <NotificationBell />
+              </li>
               <li>
                 <span className="navbar-user">สวัสดี, {user.name}</span>
               </li>

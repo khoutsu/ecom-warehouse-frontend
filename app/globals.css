@@ -71,6 +71,7 @@ h1, h2, h3, h4, h5, h6, p, ul, ol, li, div {
   color: #ce8e45;
   text-decoration: none;
   font-weight: 500;
+  font-size: 20px;
   transition: color 0.3s ease;
 }
 
@@ -80,6 +81,8 @@ h1, h2, h3, h4, h5, h6, p, ul, ol, li, div {
 
 .navbar-user {
   color: #ce8e45;
+  font-size: 20px;
+  font-weight: 500;
 }
 
 .navbar-logout {
@@ -90,6 +93,7 @@ h1, h2, h3, h4, h5, h6, p, ul, ol, li, div {
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
+  font-size: 20px;
   transition: all 0.3s ease;
 }
 

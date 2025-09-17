@@ -4,9 +4,12 @@ import { db } from './firebase';
 export interface UserData {
   uid: string;
   name: string;
+  password: string;
   email: string;
   role: 'admin' | 'customer';
   isActive: boolean;
+  phone?: string;
+  address?: string;
   createdAt: any;
   updatedAt: any;
   lastLogin: any;
@@ -203,5 +206,45 @@ export const getUserRole = async (uid: string): Promise<'admin' | 'customer' | n
   } catch (error) {
     console.error('Error getting user role:', error);
     return null;
+  }
+};
+
+// Update user profile (for URS-05)
+export const updateUserProfile = async (uid: string, profileData: {
+  name?: string;
+  phone?: string;
+  address?: string;
+}) => {
+  try {
+    const userDocRef = doc(db, 'users', uid);
+    const updateData = {
+      ...profileData,
+      updatedAt: serverTimestamp()
+    };
+    
+    await updateDoc(userDocRef, updateData);
+    console.log('User profile updated successfully');
+    return true;
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    throw error;
+  }
+};
+
+// Change user password (for URS-05)
+export const changeUserPassword = async (uid: string, newPasswordHash: string) => {
+  try {
+    const userDocRef = doc(db, 'users', uid);
+    const updateData = {
+      password: newPasswordHash,
+      updatedAt: serverTimestamp()
+    };
+    
+    await updateDoc(userDocRef, updateData);
+    console.log('User password updated successfully');
+    return true;
+  } catch (error) {
+    console.error('Error updating user password:', error);
+    throw error;
   }
 };

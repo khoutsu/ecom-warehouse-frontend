@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { reduceInventoryForOrder, restoreInventoryForOrder } from './inventoryService';
 import { reduceProductStockForOrder, restoreProductStockForOrder } from './productService';
+import { notifyNewOrder, notifyOrderStatusChange } from './notificationService';
 
 export interface OrderItem {
   productId: string;
@@ -125,6 +126,15 @@ export const createOrder = async (orderData: CreateOrderData): Promise<string> =
       ]);
       
       console.log('Inventory and product stock reduced successfully');
+      
+      // Send notifications for new order (URS-14)
+      try {
+        await notifyNewOrder(docRef.id, orderData.userName, orderData.totalAmount);
+        console.log('New order notifications sent successfully');
+      } catch (notificationError) {
+        console.error('Error sending new order notifications:', notificationError);
+        // Don't fail the order creation if notifications fail
+      }
     } catch (stockError) {
       console.error('Error reducing stock after order creation:', stockError);
       // Note: Order is already created, stock reduction failed
@@ -216,31 +226,34 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
   try {
     const orderRef = doc(db, 'orders', orderId);
     
+    // Get the order details first to access customer info and old status
+    const orderDoc = await getDoc(orderRef);
+    if (!orderDoc.exists()) {
+      throw new Error('Order not found');
+    }
+    
+    const orderData = orderDoc.data() as Order;
+    const oldStatus = orderData.status;
+    
     // If order is being cancelled, restore inventory
     if (status === 'cancelled') {
       try {
-        // Get the order details first
-        const orderDoc = await getDoc(orderRef);
-        if (orderDoc.exists()) {
-          const orderData = orderDoc.data() as Order;
+        // Only restore if the order was not already cancelled
+        if (orderData.status !== 'cancelled') {
+          const orderItems = orderData.items.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity
+          }));
           
-          // Only restore if the order was not already cancelled
-          if (orderData.status !== 'cancelled') {
-            const orderItems = orderData.items.map(item => ({
-              productId: item.productId,
-              quantity: item.quantity
-            }));
-            
-            console.log('Order being cancelled, restoring inventory...');
-            
-            // Restore both inventory and product stock
-            await Promise.all([
-              restoreInventoryForOrder(orderItems),
-              restoreProductStockForOrder(orderItems)
-            ]);
-            
-            console.log('Inventory and product stock restored successfully');
-          }
+          console.log('Order being cancelled, restoring inventory...');
+          
+          // Restore both inventory and product stock
+          await Promise.all([
+            restoreInventoryForOrder(orderItems),
+            restoreProductStockForOrder(orderItems)
+          ]);
+          
+          console.log('Inventory and product stock restored successfully');
         }
       } catch (restoreError) {
         console.error('Error restoring stock after order cancellation:', restoreError);
@@ -252,6 +265,15 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
       status,
       updatedAt: Timestamp.now()
     });
+    
+    // Send status change notification to customer (URS-15)
+    try {
+      await notifyOrderStatusChange(orderData.userId, orderId, status, oldStatus);
+      console.log('Order status change notification sent successfully');
+    } catch (notificationError) {
+      console.error('Error sending order status change notification:', notificationError);
+      // Don't fail the status update if notifications fail
+    }
   } catch (error) {
     console.error('Error updating order status:', error);
     throw error;
