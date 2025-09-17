@@ -24,6 +24,19 @@ export function NotificationBell({ onClick }: NotificationBellProps) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -176,21 +189,42 @@ export function NotificationBell({ onClick }: NotificationBellProps) {
       </button>
 
       {isOpen && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '100%',
-            right: '0',
-            width: '400px',
-            maxHeight: '500px',
-            backgroundColor: 'white',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-            zIndex: 1000,
-            overflow: 'hidden'
-          }}
-        >
+        <>
+          {/* Mobile backdrop */}
+          {isMobile && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                zIndex: 999
+              }}
+              onClick={() => setIsOpen(false)}
+            />
+          )}
+          
+          <div
+            style={{
+              position: isMobile ? 'fixed' : 'absolute',
+              top: isMobile ? '0' : '100%',
+              right: isMobile ? '0' : '0',
+              left: isMobile ? '0' : 'auto',
+              bottom: isMobile ? '0' : 'auto',
+              width: isMobile ? '100vw' : '400px',
+              maxHeight: isMobile ? '100vh' : '500px',
+              backgroundColor: 'white',
+              border: '1px solid #ddd',
+              borderRadius: isMobile ? '0' : '8px',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+              zIndex: 1000,
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
           {/* Header */}
           <div
             style={{
@@ -244,7 +278,11 @@ export function NotificationBell({ onClick }: NotificationBellProps) {
           </div>
 
           {/* Notifications List */}
-          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+          <div style={{ 
+            maxHeight: isMobile ? 'calc(100vh - 120px)' : '400px', 
+            overflowY: 'auto',
+            flex: 1
+          }}>
             {notifications.length === 0 ? (
               <div
                 style={{
@@ -262,12 +300,13 @@ export function NotificationBell({ onClick }: NotificationBellProps) {
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
                   style={{
-                    padding: '15px',
+                    padding: isMobile ? '20px 15px' : '15px',
                     borderBottom: '1px solid #f0f0f0',
                     cursor: 'pointer',
                     backgroundColor: notification.isRead ? 'white' : '#f8f9ff',
                     transition: 'background-color 0.2s',
-                    position: 'relative'
+                    position: 'relative',
+                    minHeight: isMobile ? '60px' : 'auto'
                   }}
                   onMouseEnter={(e) => {
                     if (notification.isRead) {
@@ -381,7 +420,8 @@ export function NotificationBell({ onClick }: NotificationBellProps) {
               </button>
             </div>
           )}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

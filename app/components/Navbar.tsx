@@ -129,6 +129,12 @@ export default function Navbar() {
           {user ? (
             <>
               <li>
+                <div className="mobile-notification-wrapper">
+                  <NotificationBell />
+                  <span className="mobile-notification-label">การแจ้งเตือน</span>
+                </div>
+              </li>
+              <li>
                 <span className="navbar-user">สวัสดี, {user.name}</span>
               </li>
               <li>

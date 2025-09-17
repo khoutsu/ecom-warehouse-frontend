@@ -145,7 +145,7 @@ h1, h2, h3, h4, h5, h6, p, ul, ol, li, div {
   position: absolute;
   top: 100%;
   right: 0;
-  background-color: #90EE90;
+  background-color: #7a5429;
   flex-direction: column;
   gap: 0;
   padding: 1rem;
@@ -165,6 +165,20 @@ h1, h2, h3, h4, h5, h6, p, ul, ol, li, div {
 
 .mobile-nav li:last-child {
   border-bottom: none;
+}
+
+/* Mobile notification styles */
+.mobile-notification-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.mobile-notification-label {
+  color: #ce8e45;
+  font-size: 18px;
+  font-weight: 500;
 }
 
 /* Mobile responsive */
@@ -2522,5 +2536,73 @@ h1, h2, h3, h4, h5, h6, p, ul, ol, li, div {
   .export-btn {
     width: 100%;
     min-width: auto;
+  }
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  /* Better touch targets */
+  button, .button, a {
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+  
+  /* Mobile-friendly forms */
+  input, textarea, select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px;
+  }
+  
+  /* Popular products mobile layout */
+  .popular-products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+    gap: 12px !important;
+  }
+  
+  /* Improved mobile navbar */
+  .navbar {
+    padding: 0.75rem 1rem;
+  }
+  
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+  
+  /* Mobile-friendly card layout */
+  .product-card {
+    margin-bottom: 16px;
+  }
+  
+  /* Better mobile spacing */
+  .container {
+    padding: 1rem;
+  }
+  
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.1rem; }
+}
+
+@media (max-width: 480px) {
+  /* Extra small screens */
+  .popular-products-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .navbar-brand {
+    font-size: 1rem;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* Smaller notification bell on very small screens */
+  .mobile-notification-wrapper {
+    gap: 8px;
+  }
+  
+  .mobile-notification-label {
+    font-size: 16px;
   }
 }

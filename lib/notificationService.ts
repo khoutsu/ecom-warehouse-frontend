@@ -2,7 +2,7 @@ import {
   collection, 
   addDoc, 
   query, 
-  where, 
+  where,
   getDocs, 
   orderBy, 
   updateDoc, 
@@ -49,10 +49,10 @@ export const createNotification = async (notificationData: Omit<NotificationData
 // Get notifications for a specific user
 export const getUserNotifications = async (userId: string, limit: number = 20) => {
   try {
+    // Use simple query and sort on client side to avoid index requirement
     const q = query(
       collection(db, 'notifications'),
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', userId)
     );
     
     const querySnapshot = await getDocs(q);
@@ -60,6 +60,14 @@ export const getUserNotifications = async (userId: string, limit: number = 20) =
     
     querySnapshot.forEach((doc) => {
       notifications.push({ id: doc.id, ...doc.data() } as NotificationData);
+    });
+    
+    // Sort on client side by createdAt desc
+    notifications.sort((a, b) => {
+      if (!a.createdAt || !b.createdAt) return 0;
+      const aTime = a.createdAt.seconds || 0;
+      const bTime = b.createdAt.seconds || 0;
+      return bTime - aTime;
     });
     
     return notifications.slice(0, limit);
@@ -72,10 +80,10 @@ export const getUserNotifications = async (userId: string, limit: number = 20) =
 // Get notifications for user role (admin only)
 export const getNotificationsByRole = async (userRole: 'admin', limit: number = 20) => {
   try {
+    // Use simple query and sort on client side to avoid index requirement
     const q = query(
       collection(db, 'notifications'),
-      where('userRole', '==', userRole),
-      orderBy('createdAt', 'desc')
+      where('userRole', '==', userRole)
     );
     
     const querySnapshot = await getDocs(q);
@@ -83,6 +91,14 @@ export const getNotificationsByRole = async (userRole: 'admin', limit: number = 
     
     querySnapshot.forEach((doc) => {
       notifications.push({ id: doc.id, ...doc.data() } as NotificationData);
+    });
+    
+    // Sort on client side by createdAt desc
+    notifications.sort((a, b) => {
+      if (!a.createdAt || !b.createdAt) return 0;
+      const aTime = a.createdAt.seconds || 0;
+      const bTime = b.createdAt.seconds || 0;
+      return bTime - aTime;
     });
     
     return notifications.slice(0, limit);
@@ -170,10 +186,10 @@ export const subscribeToUserNotifications = (
   userId: string, 
   callback: (notifications: NotificationData[]) => void
 ) => {
+  // Use simple query and sort on client side to avoid index requirement
   const q = query(
     collection(db, 'notifications'),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    where('userId', '==', userId)
   );
   
   return onSnapshot(q, (querySnapshot) => {
@@ -181,6 +197,15 @@ export const subscribeToUserNotifications = (
     querySnapshot.forEach((doc) => {
       notifications.push({ id: doc.id, ...doc.data() } as NotificationData);
     });
+    
+    // Sort on client side by createdAt desc
+    notifications.sort((a, b) => {
+      if (!a.createdAt || !b.createdAt) return 0;
+      const aTime = a.createdAt.seconds || 0;
+      const bTime = b.createdAt.seconds || 0;
+      return bTime - aTime;
+    });
+    
     callback(notifications);
   });
 };
@@ -190,10 +215,10 @@ export const subscribeToRoleNotifications = (
   userRole: 'admin',
   callback: (notifications: NotificationData[]) => void
 ) => {
+  // Use simple query and sort on client side to avoid index requirement
   const q = query(
     collection(db, 'notifications'),
-    where('userRole', '==', userRole),
-    orderBy('createdAt', 'desc')
+    where('userRole', '==', userRole)
   );
   
   return onSnapshot(q, (querySnapshot) => {
@@ -201,6 +226,15 @@ export const subscribeToRoleNotifications = (
     querySnapshot.forEach((doc) => {
       notifications.push({ id: doc.id, ...doc.data() } as NotificationData);
     });
+    
+    // Sort on client side by createdAt desc
+    notifications.sort((a, b) => {
+      if (!a.createdAt || !b.createdAt) return 0;
+      const aTime = a.createdAt.seconds || 0;
+      const bTime = b.createdAt.seconds || 0;
+      return bTime - aTime;
+    });
+    
     callback(notifications);
   });
 };

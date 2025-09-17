@@ -40,17 +40,20 @@ export interface PopularProduct {
 // Get popular products based on sales data
 export const getPopularProducts = async (limitCount: number = 10): Promise<PopularProduct[]> => {
   try {
-    // Get all orders from the last 30 days
+    // Get all orders from the last 30 days - simplified query
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
+    // Use a simpler query to avoid index requirements
     const ordersQuery = query(
       collection(db, 'orders'),
-      where('createdAt', '>=', Timestamp.fromDate(thirtyDaysAgo)),
-      where('status', 'in', ['confirmed', 'processing', 'shipped', 'delivered'])
+      where('createdAt', '>=', Timestamp.fromDate(thirtyDaysAgo))
     );
     
     const ordersSnapshot = await getDocs(ordersQuery);
+    
+    // Filter status on the client side to avoid composite index
+    const validStatuses = ['confirmed', 'processing', 'shipped', 'delivered'];
     
     // Aggregate product sales data
     const productSales: { [productId: string]: {
@@ -66,6 +69,12 @@ export const getPopularProducts = async (limitCount: number = 10): Promise<Popul
     
     ordersSnapshot.forEach((orderDoc) => {
       const orderData = orderDoc.data();
+      
+      // Filter by status on client side to avoid composite index
+      if (!validStatuses.includes(orderData.status)) {
+        return;
+      }
+      
       orderData.items?.forEach((item: any) => {
         const productId = item.productId;
         
@@ -147,14 +156,16 @@ export const getPopularProducts = async (limitCount: number = 10): Promise<Popul
 // Get recommended products for a specific user based on their order history
 export const getRecommendedProducts = async (userId: string, limitCount: number = 8): Promise<PopularProduct[]> => {
   try {
-    // Get user's order history
+    // Get user's order history - simplified query
     const userOrdersQuery = query(
       collection(db, 'orders'),
-      where('userId', '==', userId),
-      where('status', 'in', ['confirmed', 'processing', 'shipped', 'delivered'])
+      where('userId', '==', userId)
     );
     
     const userOrdersSnapshot = await getDocs(userOrdersQuery);
+    
+    // Filter valid statuses on client side
+    const validStatuses = ['confirmed', 'processing', 'shipped', 'delivered'];
     
     // Extract categories and products the user has bought
     const userCategories: Set<string> = new Set();
@@ -162,6 +173,12 @@ export const getRecommendedProducts = async (userId: string, limitCount: number 
     
     userOrdersSnapshot.forEach((orderDoc) => {
       const orderData = orderDoc.data();
+      
+      // Filter by status on client side
+      if (!validStatuses.includes(orderData.status)) {
+        return;
+      }
+      
       orderData.items?.forEach((item: any) => {
         userCategories.add(item.category || 'ไม่ระบุ');
         userProducts.add(item.productId);
@@ -211,30 +228,41 @@ export const getRecommendedProducts = async (userId: string, limitCount: number 
 // Get new/featured products (recently added products)
 export const getNewProducts = async (limitCount: number = 6): Promise<PopularProduct[]> => {
   try {
-    const productsQuery = query(
-      collection(db, 'products'),
-      orderBy('createdAt', 'desc'),
-      limit(limitCount)
-    );
-    
+    // Get all products and sort on client side to avoid index issues
+    const productsQuery = query(collection(db, 'products'));
     const productsSnapshot = await getDocs(productsQuery);
-    const newProducts: PopularProduct[] = [];
+    const allProducts: any[] = [];
     
     productsSnapshot.forEach((productDoc) => {
       const productData = productDoc.data();
-      newProducts.push({
+      allProducts.push({
         id: productDoc.id,
-        name: productData.name,
-        category: productData.category,
-        price: productData.price,
-        stock: productData.stock || 0,
-        imageUrl: productData.imageUrl,
-        totalSold: 0, // New products haven't sold yet
-        orderCount: 0,
-        revenue: 0,
-        popularityScore: 50 // Base score for new products
+        data: productData
       });
     });
+    
+    // Sort by creation date on client side and return the newest ones
+    const sortedProducts = allProducts
+      .sort((a, b) => {
+        const aTime = a.data.createdAt ? a.data.createdAt.seconds || 0 : 0;
+        const bTime = b.data.createdAt ? b.data.createdAt.seconds || 0 : 0;
+        return bTime - aTime;
+      })
+      .slice(0, limitCount);
+    
+    // Convert to PopularProduct format
+    const newProducts: PopularProduct[] = sortedProducts.map(item => ({
+      id: item.id,
+      name: item.data.name,
+      category: item.data.category,
+      price: item.data.price,
+      stock: item.data.stock || 0,
+      imageUrl: item.data.imageUrl,
+      totalSold: 0, // New products haven't sold yet
+      orderCount: 0,
+      revenue: 0,
+      popularityScore: 50 // Base score for new products
+    }));
     
     return newProducts;
     

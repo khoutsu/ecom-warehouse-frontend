@@ -104,7 +104,7 @@ export default function PopularProducts({
         <button
           onClick={() => setActiveTab('popular')}
           style={{
-            padding: '12px 24px',
+            padding: '14px 20px',
             backgroundColor: activeTab === 'popular' ? '#007bff' : '#f8f9fa',
             color: activeTab === 'popular' ? 'white' : '#666',
             border: 'none',
@@ -112,7 +112,9 @@ export default function PopularProducts({
             cursor: 'pointer',
             fontSize: '16px',
             fontWeight: '500',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
+            minHeight: '44px',
+            minWidth: '120px'
           }}
         >
           🔥 สินค้ายอดนิยม
@@ -122,7 +124,7 @@ export default function PopularProducts({
           <button
             onClick={() => setActiveTab('recommended')}
             style={{
-              padding: '12px 24px',
+              padding: '14px 20px',
               backgroundColor: activeTab === 'recommended' ? '#28a745' : '#f8f9fa',
               color: activeTab === 'recommended' ? 'white' : '#666',
               border: 'none',
@@ -130,7 +132,9 @@ export default function PopularProducts({
               cursor: 'pointer',
               fontSize: '16px',
               fontWeight: '500',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
+              minHeight: '44px',
+              minWidth: '120px'
             }}
           >
              แนะนำสำหรับคุณ
@@ -141,7 +145,7 @@ export default function PopularProducts({
           <button
             onClick={() => setActiveTab('new')}
             style={{
-              padding: '12px 24px',
+              padding: '14px 20px',
               backgroundColor: activeTab === 'new' ? '#ffc107' : '#f8f9fa',
               color: activeTab === 'new' ? '#212529' : '#666',
               border: 'none',
@@ -149,7 +153,9 @@ export default function PopularProducts({
               cursor: 'pointer',
               fontSize: '16px',
               fontWeight: '500',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
+              minHeight: '44px',
+              minWidth: '120px'
             }}
           >
              สินค้าใหม่
@@ -181,11 +187,14 @@ export default function PopularProducts({
           <p>ไม่มีสินค้าในหมวดนี้</p>
         </div>
       ) : (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
-          gap: '20px' 
-        }}>
+        <div 
+          className="popular-products-grid"
+          style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(250px, 100%), 1fr))', 
+            gap: '15px'
+          }}
+        >
           {getDisplayProducts().map((product) => (
             <div
               key={product.id}
