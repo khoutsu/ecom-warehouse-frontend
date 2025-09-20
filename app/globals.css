@@ -2559,6 +2559,12 @@ h1, h2, h3, h4, h5, h6, p, ul, ol, li, div {
     gap: 12px !important;
   }
   
+  /* Form grid responsive layout */
+  .form-grid-row {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+  
   /* Improved mobile navbar */
   .navbar {
     padding: 0.75rem 1rem;
@@ -2604,5 +2610,53 @@ h1, h2, h3, h4, h5, h6, p, ul, ol, li, div {
   
   .mobile-notification-label {
     font-size: 16px;
+  }
+}
+
+/* Profile Page Responsive Styles */
+@media (max-width: 768px) {
+  .profile-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  
+  .profile-header {
+    flex-direction: column !important;
+    gap: 15px !important;
+    text-align: center !important;
+  }
+  
+  .profile-card {
+    padding: 20px !important;
+  }
+  
+  .profile-form-buttons {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  
+  .profile-form-buttons button {
+    width: 100% !important;
+    flex: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 10px !important;
+    max-width: 100% !important;
+  }
+  
+  .profile-card {
+    padding: 15px !important;
+    margin-bottom: 15px !important;
+  }
+  
+  .profile-title {
+    font-size: 1.5rem !important;
+  }
+  
+  .profile-subtitle {
+    font-size: 1.2rem !important;
   }
 }

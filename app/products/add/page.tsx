@@ -217,152 +217,392 @@ export default function AddProductPage() {
   }
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
-        <h1>เพิ่มสินค้าใหม่</h1>
-        <p>สร้างสินค้าใหม่ในระบบ</p>
+    <div style={{ 
+      maxWidth: '800px', 
+      margin: '0 auto', 
+      padding: '20px',
+      backgroundColor: '#f8f9fa',
+      minHeight: '100vh'
+    }}>
+      {/* Header */}
+      <div style={{ 
+        backgroundColor: 'white',
+        padding: '20px',
+        borderRadius: '12px',
+        marginBottom: '20px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      }}>
+        <h1 style={{ 
+          margin: '0 0 10px 0',
+          color: '#333',
+          fontSize: '1.8rem',
+          fontWeight: 'bold'
+        }}>
+          เพิ่มสินค้าใหม่
+        </h1>
+        <p style={{ 
+          margin: 0,
+          color: '#666',
+          fontSize: '1rem'
+        }}>
+          สร้างสินค้าใหม่ในระบบ
+        </p>
       </div>
 
-      <div className="dashboard-content">
-        <div className="form-container">
-          <form onSubmit={handleSubmit} className="product-form">
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="name">ชื่อสินค้า *</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="กรอกชื่อสินค้า"
-                  className="form-input"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="category">หมวดหมู่ *</label>
-                <input
-                  type="text"
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  placeholder="เช่น จาน, ใบไม้, ช้อน/ส้อม"
-                  className="form-input"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="description">รายละเอียดสินค้า *</label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="กรอกรายละเอียดสินค้า"
-                className="form-textarea"
-                rows={4}
-                required
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="price">ราคา (บาท) *</label>
-                <input
-                  type="number"
-                  id="price"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  className="form-input"
-                  placeholder="กรอกราคาสินค้า"
-                  min="0"
-                  step="0.01"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="stock">จำนวนคงเหลือ *</label>
-                <input
-                  type="number"
-                  id="stock"
-                  name="stock"
-                  value={formData.stock}
-                  onChange={handleChange}
-                  className="form-input"
-                  min="0"
-                  placeholder="กรอกจำนวนสินค้า"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="image">รูปภาพสินค้า</label>
-              <input
-                type="file"
-                id="image"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="form-input file-input"
-              />
-              <small className="form-help">
-                รองรับไฟล์: JPG, PNG, GIF (ขนาดไม่เกิน 5MB)
-              </small>
-              
-              {imagePreview && (
-                <div className="image-preview">
-                  <img src={imagePreview} alt="Preview" />
-                  <button 
-                    type="button" 
-                    onClick={removeImage}
-                    className="remove-image-btn"
-                  >
-                    ลบรูปภาพ
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="form-group">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="isActive"
-                  checked={formData.isActive}
-                  onChange={handleChange}
-                  className="form-checkbox"
-                />
-                เปิดใช้งานสินค้า
+      {/* Form */}
+      <div style={{ 
+        backgroundColor: 'white',
+        padding: '30px',
+        borderRadius: '12px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      }}>
+        <form onSubmit={handleSubmit}>
+          {/* Row 1: Product Name and Category */}
+          <div 
+            className="form-grid-row"
+            style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr',
+              gap: '20px',
+              marginBottom: '20px'
+            }}
+          >
+            <div>
+              <label style={{ 
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: 'bold',
+                color: '#333'
+              }}>
+                ชื่อสินค้า *
               </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="กรอกชื่อสินค้า"
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  backgroundColor: '#fff'
+                }}
+              />
             </div>
 
-            {error && <div className="error-message">{error}</div>}
-
-            <div className="form-actions">
-              <button 
-                type="button"
-                onClick={() => router.push('/products')}
-                className="cancel-button"
-                disabled={loading}
-              >
-                ยกเลิก
-              </button>
-              <button 
-                type="submit"
-                className="submit-button"
-                disabled={loading}
-              >
-                {loading ? 'กำลังเพิ่มสินค้า...' : 'เพิ่มสินค้า'}
-              </button>
+            <div>
+              <label style={{ 
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: 'bold',
+                color: '#333'
+              }}>
+                หมวดหมู่ *
+              </label>
+              <input
+                type="text"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                placeholder="เช่น จาน, ใบไม้, ช้อน/ส้อม"
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  backgroundColor: '#fff'
+                }}
+              />
             </div>
-          </form>
-        </div>
+          </div>
+
+          {/* Product Description */}
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ 
+              display: 'block',
+              marginBottom: '8px',
+              fontWeight: 'bold',
+              color: '#333'
+            }}>
+              รายละเอียดสินค้า *
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="กรอกรายละเอียดสินค้า"
+              required
+              rows={4}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #ddd',
+                borderRadius: '8px',
+                fontSize: '16px',
+                backgroundColor: '#fff',
+                resize: 'vertical',
+                minHeight: '100px'
+              }}
+            />
+          </div>
+
+          {/* Row 2: Price and Stock */}
+          <div 
+            className="form-grid-row"
+            style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr',
+              gap: '20px',
+              marginBottom: '20px'
+            }}
+          >
+            <div>
+              <label style={{ 
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: 'bold',
+                color: '#333'
+              }}>
+                ราคา (บาท) *
+              </label>
+              <input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                placeholder="กรอกราคาสินค้า"
+                min="0"
+                step="0.01"
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  backgroundColor: '#fff'
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ 
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: 'bold',
+                color: '#333'
+              }}>
+                จำนวนคงเหลือ *
+              </label>
+              <input
+                type="number"
+                name="stock"
+                value={formData.stock}
+                onChange={handleChange}
+                placeholder="กรอกจำนวนสินค้า"
+                min="0"
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  backgroundColor: '#fff'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Image Upload */}
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ 
+              display: 'block',
+              marginBottom: '8px',
+              fontWeight: 'bold',
+              color: '#333'
+            }}>
+              รูปภาพสินค้า
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #ddd',
+                borderRadius: '8px',
+                fontSize: '16px',
+                backgroundColor: '#fff'
+              }}
+            />
+            <small style={{ 
+              color: '#666',
+              fontSize: '14px',
+              display: 'block',
+              marginTop: '5px'
+            }}>
+              รองรับไฟล์: JPG, PNG, GIF (ขนาดไม่เกิน 5MB)
+            </small>
+            
+            {imagePreview && (
+              <div style={{ 
+                marginTop: '15px',
+                padding: '15px',
+                border: '1px solid #ddd',
+                borderRadius: '8px',
+                backgroundColor: '#f8f9fa'
+              }}>
+                <img 
+                  src={imagePreview} 
+                  alt="Preview"
+                  style={{
+                    maxWidth: '200px',
+                    maxHeight: '200px',
+                    width: 'auto',
+                    height: 'auto',
+                    borderRadius: '8px',
+                    display: 'block',
+                    margin: '0 auto'
+                  }}
+                />
+                <button 
+                  type="button" 
+                  onClick={removeImage}
+                  style={{
+                    marginTop: '10px',
+                    padding: '8px 16px',
+                    backgroundColor: '#dc3545',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    display: 'block',
+                    margin: '10px auto 0'
+                  }}
+                >
+                  ลบรูปภาพ
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Active Status */}
+          <div style={{ 
+            marginBottom: '30px',
+            padding: '15px',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '8px',
+            border: '1px solid #dee2e6'
+          }}>
+            <label style={{ 
+              display: 'flex',
+              alignItems: 'center',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              color: '#333'
+            }}>
+              <input
+                type="checkbox"
+                name="isActive"
+                checked={formData.isActive}
+                onChange={handleChange}
+                style={{
+                  marginRight: '10px',
+                  width: '18px',
+                  height: '18px',
+                  cursor: 'pointer'
+                }}
+              />
+              เปิดใช้งานสินค้า
+            </label>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div style={{
+              marginBottom: '20px',
+              padding: '15px',
+              backgroundColor: '#f8d7da',
+              border: '1px solid #f5c6cb',
+              borderRadius: '8px',
+              color: '#721c24',
+              fontSize: '14px'
+            }}>
+              {error}
+            </div>
+          )}
+
+          {/* Success Message */}
+          {success && (
+            <div style={{
+              marginBottom: '20px',
+              padding: '15px',
+              backgroundColor: '#d4edda',
+              border: '1px solid #c3e6cb',
+              borderRadius: '8px',
+              color: '#155724',
+              fontSize: '14px'
+            }}>
+              {success}
+            </div>
+          )}
+
+          {/* Form Actions */}
+          <div style={{ 
+            display: 'flex',
+            gap: '15px',
+            justifyContent: 'flex-end',
+            paddingTop: '20px',
+            borderTop: '1px solid #dee2e6'
+          }}>
+            <button 
+              type="button"
+              onClick={() => router.push('/products')}
+              disabled={loading}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#6c757d',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: '16px',
+                fontWeight: '500',
+                minWidth: '120px',
+                opacity: loading ? 0.7 : 1
+              }}
+            >
+              ยกเลิก
+            </button>
+            <button 
+              type="submit"
+              disabled={loading}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: loading ? '#6c757d' : '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: '16px',
+                fontWeight: '500',
+                minWidth: '120px',
+                opacity: loading ? 0.7 : 1
+              }}
+            >
+              {loading ? 'กำลังเพิ่มสินค้า...' : 'เพิ่มสินค้า'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
