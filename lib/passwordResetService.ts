@@ -17,7 +17,7 @@ export const sendPasswordReset = async (email: string): Promise<PasswordResetRes
     if (!emailRegex.test(email)) {
       return {
         success: false,
-        message: 'กรุณากรอกอีเมลที่ถูกต้อง / Please enter a valid email address'
+        message: 'กรุณากรอกอีเมลที่ถูกต้อง'
       };
     }
 
@@ -38,8 +38,8 @@ export const sendPasswordReset = async (email: string): Promise<PasswordResetRes
     return {
       success: true,
       message: isGmail 
-        ? `ส่งลิงก์รีเซ็ตรหัสผ่านไปยัง Gmail ของคุณแล้ว กรุณาตรวจสอบกล่องจดหมาย / Password reset link sent to your Gmail. Please check your inbox.`
-        : `ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว กรุณาตรวจสอบกล่องจดหมาย / Password reset link sent to your email. Please check your inbox.`
+        ? `ส่งลิงก์รีเซ็ตรหัสผ่านไปยัง Gmail ของคุณแล้ว กรุณาตรวจสอบกล่องจดหมาย`
+        : `ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว กรุณาตรวจสอบกล่องจดหมาย`
     };
   } catch (error: any) {
     console.error('Password reset error:', error);
@@ -49,32 +49,32 @@ export const sendPasswordReset = async (email: string): Promise<PasswordResetRes
       case 'auth/user-not-found':
         return {
           success: false,
-          message: 'ไม่พบบัญชีผู้ใช้ที่ใช้อีเมลนี้ / No account found with this email address'
+          message: 'ไม่พบบัญชีผู้ใช้ที่ใช้อีเมลนี้'
         };
       case 'auth/invalid-email':
         return {
           success: false,
-          message: 'รูปแบบอีเมลไม่ถูกต้อง / Invalid email format'
+          message: 'รูปแบบอีเมลไม่ถูกต้อง'
         };
       case 'auth/unauthorized-continue-url':
         return {
           success: false,
-          message: 'เกิดข้อผิดพลาดในการกำหนดค่า กรุณาติดต่อผู้ดูแลระบบ / Configuration error. Please contact system administrator'
+          message: 'เกิดข้อผิดพลาดในการกำหนดค่า กรุณาติดต่อผู้ดูแลระบบ '
         };
       case 'auth/too-many-requests':
         return {
           success: false,
-          message: 'ส่งคำขอมากเกินไป กรุณารอสักครู่แล้วลองใหม่ / Too many requests. Please wait and try again later'
+          message: 'ส่งคำขอมากเกินไป กรุณารอสักครู่แล้วลองใหม่ '
         };
       case 'auth/network-request-failed':
         return {
           success: false,
-          message: 'ไม่สามารถเชื่อมต่ออินเทอร์เน็ต กรุณาตรวจสอบการเชื่อมต่อ / Network error. Please check your internet connection'
+          message: 'ไม่สามารถเชื่อมต่ออินเทอร์เน็ต กรุณาตรวจสอบการเชื่อมต่อ '
         };
       default:
         return {
           success: false,
-          message: 'เกิดข้อผิดพลาดในการส่งอีเมลรีเซ็ตรหัสผ่าน กรุณาลองใหม่ / Failed to send password reset email. Please try again'
+          message: 'เกิดข้อผิดพลาดในการส่งอีเมลรีเซ็ตรหัสผ่าน กรุณาลองใหม่ '
         };
     }
   }
@@ -88,7 +88,7 @@ export const verifyResetCode = async (code: string): Promise<PasswordResetResult
     const email = await verifyPasswordResetCode(auth, code);
     return {
       success: true,
-      message: 'รหัสรีเซ็ตรหัสผ่านถูกต้อง / Password reset code is valid',
+      message: 'รหัสรีเซ็ตรหัสผ่านถูกต้อง ',
       email
     };
   } catch (error: any) {
@@ -98,22 +98,22 @@ export const verifyResetCode = async (code: string): Promise<PasswordResetResult
       case 'auth/expired-action-code':
         return {
           success: false,
-          message: 'รหัสรีเซ็ตรหัสผ่านหมดอายุแล้ว กรุณาขอรหัสใหม่ / Password reset code has expired. Please request a new one'
+          message: 'รหัสรีเซ็ตรหัสผ่านหมดอายุแล้ว กรุณาขอรหัสใหม่ '
         };
       case 'auth/invalid-action-code':
         return {
           success: false,
-          message: 'รหัสรีเซ็ตรหัสผ่านไม่ถูกต้อง / Invalid password reset code'
+          message: 'รหัสรีเซ็ตรหัสผ่านไม่ถูกต้อง '
         };
       case 'auth/user-disabled':
         return {
           success: false,
-          message: 'บัญชีผู้ใช้ถูกปิดใช้งาน / User account has been disabled'
+          message: 'บัญชีผู้ใช้ถูกปิดใช้งาน '
         };
       default:
         return {
           success: false,
-          message: 'เกิดข้อผิดพลาดในการตรวจสอบรหัสรีเซ็ต / Error verifying reset code'
+          message: 'เกิดข้อผิดพลาดในการตรวจสอบรหัสรีเซ็ต '
         };
     }
   }
@@ -128,7 +128,7 @@ export const confirmPasswordResetWithCode = async (code: string, newPassword: st
     if (newPassword.length < 6) {
       return {
         success: false,
-        message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร / Password must be at least 6 characters long'
+        message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร '
       };
     }
 
@@ -136,7 +136,7 @@ export const confirmPasswordResetWithCode = async (code: string, newPassword: st
     
     return {
       success: true,
-      message: 'เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่ / Password reset successful. Please login with your new password'
+      message: 'เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่ '
     };
   } catch (error: any) {
     console.error('Password reset confirmation error:', error);
@@ -145,22 +145,22 @@ export const confirmPasswordResetWithCode = async (code: string, newPassword: st
       case 'auth/expired-action-code':
         return {
           success: false,
-          message: 'รหัสรีเซ็ตรหัสผ่านหมดอายุแล้ว กรุณาขอรหัสใหม่ / Password reset code has expired. Please request a new one'
+          message: 'รหัสรีเซ็ตรหัสผ่านหมดอายุแล้ว กรุณาขอรหัสใหม่ '
         };
       case 'auth/invalid-action-code':
         return {
           success: false,
-          message: 'รหัสรีเซ็ตรหัสผ่านไม่ถูกต้อง / Invalid password reset code'
+          message: 'รหัสรีเซ็ตรหัสผ่านไม่ถูกต้อง '
         };
       case 'auth/weak-password':
         return {
           success: false,
-          message: 'รหัสผ่านไม่ปลอดภัยเพียงพอ กรุณาใช้รหัสผ่านที่แข็งแกร่งกว่า / Password is too weak. Please use a stronger password'
+          message: 'รหัสผ่านไม่ปลอดภัยเพียงพอ กรุณาใช้รหัสผ่านที่แข็งแกร่งกว่า '
         };
       default:
         return {
           success: false,
-          message: 'เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน กรุณาลองใหม่ / Failed to reset password. Please try again'
+          message: 'เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน กรุณาลองใหม่ '
         };
     }
   }
@@ -178,7 +178,7 @@ export const validateEmailForReset = (email: string): { isValid: boolean; isGmai
     return {
       isValid: false,
       isGmail: false,
-      message: 'กรุณากรอกอีเมลที่ถูกต้อง / Please enter a valid email address'
+      message: 'กรุณากรอกอีเมลที่ถูกต้อง '
     };
   }
   
@@ -186,8 +186,8 @@ export const validateEmailForReset = (email: string): { isValid: boolean; isGmai
     isValid: true,
     isGmail,
     message: isGmail 
-      ? 'อีเมล Gmail ถูกต้อง / Valid Gmail address'
-      : 'อีเมลถูกต้อง (แนะนำให้ใช้ Gmail) / Valid email (Gmail recommended)'
+      ? 'อีเมล Gmail ถูกต้อง '
+      : 'อีเมลถูกต้อง (แนะนำให้ใช้ Gmail) '
   };
 };
 
