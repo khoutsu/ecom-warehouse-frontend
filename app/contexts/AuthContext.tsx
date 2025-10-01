@@ -116,11 +116,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Handle specific Firebase auth errors
       if (error.code === 'auth/email-already-in-use') {
-        throw new Error('Email is already registered');
+        throw new Error('อีเมลนี้ถูกใช้งานแล้ว');
       } else if (error.code === 'auth/weak-password') {
-        throw new Error('Password should be at least 6 characters');
+        throw new Error('รหัสผ่านควรมีความยาวอย่างน้อย 6 ตัวอักษร');
       } else if (error.code === 'auth/invalid-email') {
-        throw new Error('Invalid email address');
+        throw new Error('อีเมลไม่ถูกต้อง');
       }
       
       throw new Error('Registration failed. Please try again.');
@@ -147,13 +147,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Handle specific Firebase auth errors
       if (error.code === 'auth/user-not-found') {
-        throw new Error('No account found with this email');
-      } else if (error.code === 'auth/wrong-password') {
-        throw new Error('Incorrect password');
+        throw new Error('ไม่พบบัญชีผู้ใช้ด้วยอีเมลนี้');
+      } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        throw new Error('รหัสผ่านไม่ถูกต้อง');
       } else if (error.code === 'auth/invalid-email') {
-        throw new Error('Invalid email address');
+        throw new Error('อีเมลไม่ถูกต้อง');
       } else if (error.code === 'auth/too-many-requests') {
-        throw new Error('Too many failed attempts. Please try again later.');
+        throw new Error('ลองเข้าสู่ระบบผิดพลาดหลายครั้งเกินไป กรุณาลองใหม่อีกครั้งในภายหลัง');
       }
       
       throw new Error('Login failed. Please check your credentials.');
@@ -170,8 +170,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      register, 
+      logout, 
+      isLoading 
+    }}>
       {children}
     </AuthContext.Provider>
   );

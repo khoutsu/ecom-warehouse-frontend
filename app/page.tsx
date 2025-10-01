@@ -11,7 +11,7 @@ export default function Home() {
   useEffect(() => {
     // If loading is done and no user is found, redirect to register
     if (!isLoading && !user) {
-      router.push('/register');
+      router.push('/login');
     }
   }, [user, isLoading, router]);
 

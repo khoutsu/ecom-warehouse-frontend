@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { updateUserProfile, changeUserPassword, getUserDocument } from '../../lib/userService';
+import { updateUserProfile, getUserDocument } from '../../lib/userService';
 
 interface UserData {
   name?: string;
@@ -17,17 +17,10 @@ interface ProfileForm {
   address: string;
 }
 
-interface PasswordForm {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
 export default function ProfilePage() {
   const { user } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoading2, setIsLoading2] = useState(false);
   const [message, setMessage] = useState('');
@@ -36,12 +29,6 @@ export default function ProfilePage() {
     name: '',
     phone: '',
     address: ''
-  });
-
-  const [passwordForm, setPasswordForm] = useState<PasswordForm>({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
   });
 
   const isAdmin = userData?.role === 'admin';
@@ -97,43 +84,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user?.id) return;
 
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setMessage('รหัสผ่านใหม่ไม่ตรงกัน');
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      setMessage('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
-      return;
-    }
-
-    setIsLoading2(true);
-    setMessage('');
-
-    try {
-      // Simple hash for demo - in production, use proper hashing
-      const hashedPassword = btoa(passwordForm.newPassword);
-      await changeUserPassword(user.id, hashedPassword);
-      setIsChangingPassword(false);
-      setPasswordForm({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      setMessage('เปลี่ยนรหัสผ่านสำเร็จ!');
-      
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      console.error('Error changing password:', error);
-      setMessage('เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน');
-    } finally {
-      setIsLoading2(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -593,285 +544,6 @@ export default function ProfilePage() {
                     }}
                   >
                     {isLoading2 ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-
-        <div style={{ 
-          backgroundColor: 'white', 
-          borderRadius: '16px', 
-          border: '1px solid #e1e5e9',
-          overflow: 'hidden'
-        }}>
-          <div style={{
-            padding: '24px 32px',
-            borderBottom: '1px solid #f1f5f9',
-            backgroundColor: '#fafbfc'
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <div>
-                <h2 style={{ 
-                  color: '#1e293b', 
-                  margin: '0 0 4px 0',
-                  fontSize: '20px',
-                  fontWeight: '600'
-                }}>
-                   ความปลอดภย
-                </h2>
-                <p style={{
-                  margin: 0,
-                  color: '#64748b',
-                  fontSize: '14px'
-                }}>
-                  จดการรหสผานและความปลอดภยบญช
-                </p>
-              </div>
-              {!isChangingPassword && (
-                <button
-                  onClick={() => setIsChangingPassword(true)}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = '#1d4ed8';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = '#3b82f6';
-                  }}
-                >
-                   🔑 เปลี่ยนรหัสผ่าน
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div style={{ padding: '32px' }}>
-            {!isChangingPassword ? (
-              <div style={{
-                textAlign: 'center',
-                padding: '40px 20px'
-              }}>
-                <div style={{ 
-                  fontSize: '48px', 
-                  marginBottom: '16px',
-                  opacity: 0.7
-                }}>
-                  
-                </div>
-                <h3 style={{
-                  color: '#374151',
-                  fontSize: '18px',
-                  fontWeight: '600',
-                  marginBottom: '8px'
-                }}>
-                  บัญชีของคุณปลอดภัย
-                </h3>
-                <p style={{
-                  color: '#64748b',
-                  fontSize: '14px',
-                  lineHeight: '1.5',
-                  maxWidth: '300px',
-                  margin: '0 auto'
-                }}>
-                  คลิกปุ่ม "เปลี่ยนรหัสผ่าน" เพื่ออัปเดตรหัสผ่านของคุณ
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handlePasswordSubmit} style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '24px'
-              }}>
-                <div>
-                  <label style={{ 
-                    display: 'block', 
-                    fontWeight: '500', 
-                    color: '#374151',
-                    fontSize: '15px',
-                    marginBottom: '8px'
-                  }}>
-                    รหัสผ่านปัจจุบัน *
-                  </label>
-                  <input
-                    type="password"
-                    value={passwordForm.currentPassword}
-                    onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                    required
-                    placeholder="กรอกรหัสผ่านปัจจุบัน"
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '10px',
-                      fontSize: '15px',
-                      outline: 'none',
-                      backgroundColor: '#ffffff',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.borderColor = '#3b82f6';
-                      e.currentTarget.style.backgroundColor = '#f8fafc';
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = '#e5e7eb';
-                      e.currentTarget.style.backgroundColor = '#ffffff';
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ 
-                    display: 'block', 
-                    fontWeight: '500', 
-                    color: '#374151',
-                    fontSize: '15px',
-                    marginBottom: '8px'
-                  }}>
-                    รหัสผ่านใหม่ *
-                  </label>
-                  <input
-                    type="password"
-                    value={passwordForm.newPassword}
-                    onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                    required
-                    placeholder="กรอกรหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)"
-                    minLength={6}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '10px',
-                      fontSize: '15px',
-                      outline: 'none',
-                      backgroundColor: '#ffffff',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.borderColor = '#3b82f6';
-                      e.currentTarget.style.backgroundColor = '#f8fafc';
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = '#e5e7eb';
-                      e.currentTarget.style.backgroundColor = '#ffffff';
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ 
-                    display: 'block', 
-                    fontWeight: '500', 
-                    color: '#374151',
-                    fontSize: '15px',
-                    marginBottom: '8px'
-                  }}>
-                    ยืนยันรหัสผ่านใหม่ *
-                  </label>
-                  <input
-                    type="password"
-                    value={passwordForm.confirmPassword}
-                    onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    required
-                    placeholder="กรอกรหัสผ่านใหม่อีกครั้ง"
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '10px',
-                      fontSize: '15px',
-                      outline: 'none',
-                      backgroundColor: '#ffffff',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.borderColor = '#3b82f6';
-                      e.currentTarget.style.backgroundColor = '#f8fafc';
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = '#e5e7eb';
-                      e.currentTarget.style.backgroundColor = '#ffffff';
-                    }}
-                  />
-                </div>
-
-                <div style={{ 
-                  display: 'flex', 
-                  gap: '12px',
-                  marginTop: '8px'
-                }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsChangingPassword(false);
-                      setPasswordForm({
-                        currentPassword: '',
-                        newPassword: '',
-                        confirmPassword: ''
-                      });
-                    }}
-                    style={{
-                      flex: 1,
-                      padding: '12px 24px',
-                      backgroundColor: '#f8fafc',
-                      color: '#475569',
-                      border: '2px solid #e2e8f0',
-                      borderRadius: '10px',
-                      cursor: 'pointer',
-                      fontSize: '15px',
-                      fontWeight: '500',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.backgroundColor = '#e2e8f0';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.backgroundColor = '#f8fafc';
-                    }}
-                  >
-                    ยกเลิก
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isLoading2}
-                    style={{
-                      flex: 1,
-                      padding: '12px 24px',
-                      backgroundColor: isLoading2 ? '#94a3b8' : '#ef4444',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '10px',
-                      cursor: isLoading2 ? 'not-allowed' : 'pointer',
-                      fontSize: '15px',
-                      fontWeight: '500',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseOver={(e) => {
-                      if (!isLoading2) {
-                        e.currentTarget.style.backgroundColor = '#dc2626';
-                      }
-                    }}
-                    onMouseOut={(e) => {
-                      if (!isLoading2) {
-                        e.currentTarget.style.backgroundColor = '#ef4444';
-                      }
-                    }}
-                  >
-                    {isLoading2 ? 'กำลังเปลี่ยน...' : '🔑 เปลี่ยนรหัสผ่าน'}
                   </button>
                 </div>
               </form>

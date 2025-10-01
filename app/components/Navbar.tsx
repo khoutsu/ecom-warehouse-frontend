@@ -43,6 +43,9 @@ export default function Navbar() {
           <li>
             <Link href="/">หน้าหลัก</Link>
           </li>
+          <li>
+            <Link href="/about">เกี่ยวกับ</Link>
+          </li>
           {user && (
             <>
               <li>
@@ -96,6 +99,9 @@ export default function Navbar() {
         <ul className={`navbar-nav mobile-nav ${isMenuOpen ? 'open' : ''}`}>
           <li>
             <Link href="/" onClick={() => setIsMenuOpen(false)}>หน้าหลัก</Link>
+          </li>
+          <li>
+            <Link href="/about" onClick={() => setIsMenuOpen(false)}>เกี่ยวกับ</Link>
           </li>
           {user && (
             <>

@@ -34,8 +34,29 @@ export default function OrdersPage() {
   const [uploadingSlip, setUploadingSlip] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   const isAdmin = user?.role === 'admin';
+
+  // Handle ESC key for closing zoom modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && zoomedImage) {
+        setZoomedImage(null);
+      }
+    };
+
+    if (zoomedImage) {
+      document.addEventListener('keydown', handleKeyDown);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [zoomedImage]);
 
   const toggleOrderExpansion = (orderId: string) => {
     setExpandedOrders(prev => {
@@ -540,11 +561,58 @@ export default function OrdersPage() {
                           {order.paymentDetails.slipImageUrl && (
                             <div className="payment-slip">
                               <p><strong>หลักฐานการโอนเงิน:</strong></p>
-                              <img 
-                                src={order.paymentDetails.slipImageUrl} 
-                                alt="หลักฐานการโอนเงิน"
-                                style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain' }}
-                              />
+                              <div 
+                                className="payment-slip-image-container"
+                                onClick={() => setZoomedImage(order.paymentDetails?.slipImageUrl || null)}
+                                style={{
+                                  cursor: 'zoom-in',
+                                  display: 'inline-block',
+                                  border: '2px solid #e1e5e9',
+                                  borderRadius: '8px',
+                                  padding: '4px',
+                                  backgroundColor: '#f8f9fa',
+                                  transition: 'all 0.2s ease',
+                                  position: 'relative'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.borderColor = '#007bff';
+                                  e.currentTarget.style.transform = 'scale(1.02)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.borderColor = '#e1e5e9';
+                                  e.currentTarget.style.transform = 'scale(1)';
+                                }}
+                              >
+                                <img 
+                                  src={order.paymentDetails?.slipImageUrl || ''} 
+                                  alt="หลักฐานการโอนเงิน"
+                                  style={{ 
+                                    maxWidth: '200px', 
+                                    maxHeight: '200px', 
+                                    objectFit: 'contain',
+                                    display: 'block',
+                                    borderRadius: '4px'
+                                  }}
+                                />
+                                <div 
+                                  style={{
+                                    position: 'absolute',
+                                    top: '8px',
+                                    right: '8px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                    color: 'white',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    opacity: 0,
+                                    transition: 'opacity 0.2s ease'
+                                  }}
+                                  className="zoom-hint"
+                                >
+                                  🔍 คลิกเพื่อซูม
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -754,6 +822,88 @@ export default function OrdersPage() {
                   {uploadingSlip ? 'กำลังอัปโหลด...' : 'อัปโหลดหลักฐาน'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Image Zoom Modal */}
+      {zoomedImage && (
+        <div 
+          className="zoom-modal-overlay"
+          onClick={() => setZoomedImage(null)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+            cursor: 'zoom-out'
+          }}
+        >
+          <div style={{ position: 'relative', maxWidth: '600px', maxHeight: '80vh' }}>
+            <img 
+              src={zoomedImage}
+              alt="หลักฐานการโอนเงิน (ขยาย)"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain',
+                borderRadius: '8px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+                backgroundColor: 'white',
+                padding: '10px'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              onClick={() => setZoomedImage(null)}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                fontSize: '18px',
+                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                transition: 'background-color 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+              }}
+              title="ปิด (กด ESC หรือคลิกพื้นหลัง)"
+            >
+              ×
+            </button>
+            <div 
+              style={{
+                position: 'absolute',
+                bottom: '10px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                color: 'white',
+                padding: '8px 16px',
+                borderRadius: '20px',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+            >
+              🔍 หลักฐานการโอนเงิน - คลิกพื้นหลังหรือกด ESC เพื่อปิด
             </div>
           </div>
         </div>
@@ -1265,6 +1415,41 @@ const styles = `
 
     .upload-actions button {
       width: 100%;
+    }
+  }
+
+  /* Payment Slip Zoom Styles */
+  .payment-slip-image-container:hover .zoom-hint {
+    opacity: 1 !important;
+  }
+
+  .zoom-modal-overlay {
+    backdrop-filter: blur(2px);
+    padding: 20px;
+  }
+
+  /* Smooth transitions for zoom modal */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .zoom-modal-overlay > div {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Responsive zoom modal */
+  @media (max-width: 768px) {
+    .zoom-modal-overlay > div {
+      max-width: 95vw !important;
+      max-height: 70vh !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .zoom-modal-overlay > div {
+      max-width: 90vw !important;
+      max-height: 60vh !important;
     }
   }
 `;

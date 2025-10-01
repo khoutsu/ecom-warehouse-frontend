@@ -321,9 +321,6 @@ export default function DashboardPage() {
         <div className="reports-header">
           <h2> รายงานและการส่งออกข้อมูล</h2>
           <div className="export-buttons">
-            <button onClick={handleExportPDF} className="export-btn pdf">
-               ส่งออก PDF
-            </button>
             <button onClick={handleExportExcel} className="export-btn excel">
                ส่งออก Excel
             </button>
