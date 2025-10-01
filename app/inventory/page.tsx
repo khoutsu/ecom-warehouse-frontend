@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getAllInventory, createInventoryItem, updateInventoryItem, deleteInventoryItem, InventoryItem, CreateInventoryData } from '../../lib/inventoryService';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { getAllProducts, Product, updateProductStock } from '../../lib/productService';
 
 // Form state interface for string inputs
@@ -27,6 +28,8 @@ export default function InventoryPage() {
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<{id: string, name: string} | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Form data
   const [formData, setFormData] = useState<FormData>({
@@ -145,17 +148,28 @@ export default function InventoryPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('คุณแน่ใจหรือไม่ที่จะลบรายการนี้? สต็อกสินค้าจะถูกตั้งเป็น 0')) return;
+  const handleDelete = (id: string) => {
+    const item = inventory.find(item => item.id === id);
+    if (!item) return;
+    
+    setDeleteConfirm({ id, name: item.productName });
+  };
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    
+    setDeleting(true);
     try {
       setError('');
-      await deleteInventoryItem(id);
+      await deleteInventoryItem(deleteConfirm.id);
       setSuccess('ลบรายการสินค้าคงคลังสำเร็จ และอัปเดตสต็อกสินค้าเป็น 0 แล้ว');
+      setDeleteConfirm(null);
       loadData();
     } catch (error) {
       console.error('Error deleting inventory item:', error);
       setError('เกิดข้อผิดพลาดในการลบรายการ');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -774,6 +788,18 @@ export default function InventoryPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={confirmDelete}
+        title="ยืนยันการลบสินค้าคงคลัง"
+        message={deleteConfirm ? `คุณแน่ใจหรือไม่ที่จะลบรายการ "${deleteConfirm.name}"?\n\nสต็อกสินค้าจะถูกตั้งเป็น 0` : ''}
+        confirmText="ยืนยัน"
+        cancelText="ยกเลิก"
+        isLoading={deleting}
+      />
     </div>
   );
 }

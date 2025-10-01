@@ -48,14 +48,6 @@ export default function LoginPage() {
       const newFailedAttempts = failedAttempts + 1;
       setFailedAttempts(newFailedAttempts);
       setError(error.message || 'การเข้าสู่ระบบล้มเหลว กรุณาลองใหม่อีกครั้ง');
-      
-      // Redirect to reset password page after 3 failed attempts
-      if (newFailedAttempts >= 3) {
-        // Add a small delay to show the error message before redirecting
-        setTimeout(() => {
-          router.push('/reset-password');
-        }, 2000);
-      }
     } finally {
       setIsLoading(false);
     }
@@ -93,33 +85,6 @@ export default function LoginPage() {
           </div>
           {error && <div className="error-message">{error}</div>}
           
-          {/* Show password reset option after 3 failed attempts */}
-          {failedAttempts >= 3 && (
-            <div className="password-reset-suggestion">
-              <p style={{ color: '#dc2626', fontSize: '14px', textAlign: 'center', margin: '10px 0' }}>
-                เข้าสู่ระบบล้มเหลว {failedAttempts} ครั้ง
-              </p>
-              <button 
-                type="button"
-                onClick={() => router.push('/reset-password')}
-                className="reset-password-button"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#2563eb',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  padding: '5px 0',
-                  width: '100%',
-                  textAlign: 'center'
-                }}
-              >
-                รีเซ็ตรหัสผ่าน (Reset Password)
-              </button>
-            </div>
-          )}
-          
           <button 
             type="submit" 
             className="auth-button"
@@ -131,6 +96,11 @@ export default function LoginPage() {
 
         <div className="auth-footer">
           <p>ยังไม่มีบัญชี? <Link href="/register" className="auth-link">สมัครสมาชิกที่นี่</Link></p>
+          <p style={{ marginTop: '0.5rem' }}>
+            <Link href="/reset-password" className="auth-link">
+              ลืมรหัสผ่าน? (Forgot Password?)
+            </Link>
+          </p>
         </div>
       </div>
 

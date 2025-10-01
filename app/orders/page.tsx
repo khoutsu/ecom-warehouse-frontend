@@ -14,6 +14,7 @@ import {
   Order 
 } from '../../lib/orderService';
 import { savePaymentSlipInfo, saveThaiPaymentSlip } from '../../lib/paymentSlipService';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function OrdersPage() {
   const { user, isLoading } = useAuth();
@@ -35,6 +36,8 @@ export default function OrdersPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{orderId: string, order: Order} | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const isAdmin = user?.role === 'admin';
 
@@ -126,33 +129,39 @@ export default function OrdersPage() {
     }
   };
 
-  const handleDeleteOrder = async (orderId: string) => {
+  const handleDeleteOrder = (orderId: string) => {
     if (!isAdmin) return;
     
     // Find the order to check its payment status
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
     
-    let confirmMessage = 'คุณแน่ใจหรือไม่ที่จะลบคำสั่งซื้อนี้?';
+    setDeleteConfirm({ orderId, order });
+  };
+
+  const confirmDeleteOrder = async () => {
+    if (!deleteConfirm) return;
     
-    if (order.paymentStatus === 'paid') {
-      confirmMessage = '⚠️ คำเตือน: คำสั่งซื้อนี้ชำระเงินแล้ว การลบจะไม่คืนสินค้าเข้าสต็อก เพราะถือว่าขายแล้ว\n\nคุณแน่ใจหรือไม่ที่จะลบคำสั่งซื้อนี้?';
-    } else if (order.status === 'cancelled') {
-      confirmMessage = 'คำสั่งซื้อนี้ถูกยกเลิกแล้ว การลบจะไม่มีผลต่อสต็อกสินค้า\n\nคุณแน่ใจหรือไม่ที่จะลบคำสั่งซื้อนี้?';
-    } else {
-      confirmMessage = 'การลบคำสั่งซื้อนี้จะคืนสินค้าเข้าสต็อกอัตโนมัติ\n\nคุณแน่ใจหรือไม่ที่จะลบคำสั่งซื้อนี้?';
-    }
-    
-    if (!confirm(confirmMessage)) {
-      return;
-    }
-    
+    setDeleting(true);
     try {
-      await deleteOrder(orderId);
-      setOrders(prev => prev.filter(order => order.id !== orderId));
+      await deleteOrder(deleteConfirm.orderId);
+      setOrders(prev => prev.filter(order => order.id !== deleteConfirm.orderId));
+      setDeleteConfirm(null);
     } catch (error: any) {
       console.error('Error deleting order:', error);
       setError('ไม่สามารถลบคำสั่งซื้อได้');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const getDeleteMessage = (order: Order) => {
+    if (order.paymentStatus === 'paid') {
+      return '⚠️ คำเตือน: คำสั่งซื้อนี้ชำระเงินแล้ว การลบจะไม่คืนสินค้าเข้าสต็อก เพราะถือว่าขายแล้ว\n\nคุณแน่ใจหรือไม่ที่จะลบคำสั่งซื้อนี้?';
+    } else if (order.status === 'cancelled') {
+      return 'คำสั่งซื้อนี้ถูกยกเลิกแล้ว การลบจะไม่มีผลต่อสต็อกสินค้า\n\nคุณแน่ใจหรือไม่ที่จะลบคำสั่งซื้อนี้?';
+    } else {
+      return 'การลบคำสั่งซื้อนี้จะคืนสินค้าเข้าสต็อกอัตโนมัติ\n\nคุณแน่ใจหรือไม่ที่จะลบคำสั่งซื้อนี้?';
     }
   };
 
@@ -908,6 +917,18 @@ export default function OrdersPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={confirmDeleteOrder}
+        title="ยืนยันการลบคำสั่งซื้อ"
+        message={deleteConfirm ? getDeleteMessage(deleteConfirm.order) : ''}
+        confirmText="ยืนยัน"
+        cancelText="ยกเลิก"
+        isLoading={deleting}
+      />
     </div>
   );
 }

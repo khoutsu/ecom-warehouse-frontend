@@ -79,16 +79,17 @@ export default function PasswordResetModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full" style={{ maxWidth: '400px' }}>
         <div className="p-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
-              รีเซ็ตรหัสผ่าน / Reset Password
+            <h2 className="text-xl font-semibold" style={{ color: '#2d5016' }}>
+              รีเซ็ตรหัสผ่าน
             </h2>
             <button
               onClick={handleClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="hover:opacity-70 transition-opacity"
+              style={{ color: '#666' }}
               disabled={isLoading}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,22 +99,28 @@ export default function PasswordResetModal({
           </div>
 
           {/* Description */}
-          <p className="text-sm text-gray-600 mb-6">
-            กรอกอีเมลของคุณเพื่อรับลิงก์รีเซ็ตรหัสผ่าน / Enter your email to receive a password reset link
+          <p className="text-sm mb-6" style={{ color: '#666' }}>
+            กรอกอีเมลของคุณเพื่อรับลิงก์รีเซ็ตรหัสผ่าน
           </p>
 
           {/* Form */}
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div>
-              <label htmlFor="resetEmail" className="block text-sm font-medium text-gray-700 mb-1">
-                อีเมล / Email
+              <label htmlFor="resetEmail" className="block text-sm font-medium mb-1" style={{ color: '#2d5016' }}>
+                อีเมล
               </label>
               <input
                 type="email"
                 id="resetEmail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border-2 rounded focus:outline-none transition-colors"
+                style={{ 
+                  borderColor: '#ddd', 
+                  fontSize: '1rem'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#90EE90'}
+                onBlur={(e) => e.target.style.borderColor = '#ddd'}
                 placeholder="your.email@gmail.com"
                 disabled={isLoading}
                 required
@@ -122,27 +129,14 @@ export default function PasswordResetModal({
 
             {/* Message */}
             {message && (
-              <div className={`p-3 rounded-md text-sm ${
-                isSuccess 
-                  ? 'bg-green-50 text-green-800 border border-green-200' 
-                  : 'bg-red-50 text-red-800 border border-red-200'
-              }`}>
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
-                    {isSuccess ? (
-                      <svg className="w-4 h-4 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    )}
-                  </div>
-                  <div className="ml-2">
-                    {message}
-                  </div>
-                </div>
+              <div 
+                className="p-3 rounded text-sm text-center"
+                style={{
+                  backgroundColor: isSuccess ? '#d4edda' : '#ffeaa7',
+                  color: isSuccess ? '#155724' : '#d63031'
+                }}
+              >
+                {message}
               </div>
             )}
 
@@ -151,42 +145,67 @@ export default function PasswordResetModal({
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 rounded transition-colors"
+                style={{
+                  color: '#666',
+                  backgroundColor: '#f5f5f5',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onMouseOver={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#e5e5e5'}
+                onMouseOut={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#f5f5f5'}
                 disabled={isLoading}
               >
-                ยกเลิก / Cancel
+                ยกเลิก
               </button>
               <button
                 type="submit"
                 disabled={isLoading || !email.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center"
+                className="px-4 py-2 rounded transition-colors flex items-center"
+                style={{
+                  backgroundColor: isLoading || !email.trim() ? '#ccc' : '#90EE90',
+                  color: isLoading || !email.trim() ? '#666' : '#2d5016',
+                  border: 'none',
+                  cursor: isLoading || !email.trim() ? 'not-allowed' : 'pointer',
+                  fontWeight: '500'
+                }}
+                onMouseOver={(e) => {
+                  if (!isLoading && email.trim()) {
+                    (e.target as HTMLButtonElement).style.backgroundColor = '#7dd87d';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!isLoading && email.trim()) {
+                    (e.target as HTMLButtonElement).style.backgroundColor = '#90EE90';
+                  }
+                }}
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    กำลังส่ง... / Sending...
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 mr-2" style={{ borderColor: '#666' }}></div>
+                    กำลังส่ง...
                   </>
                 ) : (
-                  'ส่งลิงก์รีเซ็ต / Send Reset Link'
+                  'ส่งลิงก์รีเซ็ต'
                 )}
               </button>
             </div>
           </form>
 
-          {/* Gmail Note */}
-          <div className="mt-4 p-3 bg-blue-50 rounded-md">
+          {/* Tips Section */}
+          <div className="mt-4 p-3 rounded" style={{ backgroundColor: '#f0f8f0' }}>
             <div className="flex items-start">
               <div className="flex-shrink-0">
-                <svg className="w-4 h-4 text-blue-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 mt-0.5" fill="#90EE90" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
               </div>
-              <div className="ml-2 text-xs text-blue-700">
-                <p className="font-medium">คำแนะนำ / Tips:</p>
+              <div className="ml-2 text-xs" style={{ color: '#2d5016' }}>
+                <p className="font-medium">คำแนะนำ:</p>
                 <ul className="mt-1 space-y-1">
-                  <li>• ตรวจสอบกล่องจดหมายและโฟลเดอร์ Spam / Check inbox and spam folder</li>
-                  <li>• ลิงก์จะหมดอายุใน 1 ชั่วโมง / Link expires in 1 hour</li>
-                  <li>• แนะนำให้ใช้ Gmail เพื่อความรวดเร็ว / Gmail recommended for faster delivery</li>
+                  <li>• ตรวจสอบกล่องจดหมายและโฟลเดอร์ Spam</li>
+                  <li>• ลิงก์จะหมดอายุใน 1 ชั่วโมง</li>
+                  <li>• แนะนำให้ใช้ Gmail เพื่อความรวดเร็ว</li>
                 </ul>
               </div>
             </div>
